@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Solver — MazeSolver</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+[data-theme="light"]{--bg:#faf7f2;--bg2:#f5efe6;--bg3:#fff;--panel:#fff;--panel2:#e8e0d8;--border:#ddd5cc;--text:#2d2420;--mid:#5a4a42;--muted:#9a8a82;--accent:#c2622a;--accent-h:#a84f1f;--accent-bg:#fdf0ea;--green:#2d7a4f;--green-bg:#e8f5ee;--red:#b83228;--red-bg:#fdeaea;--dfs:#6d28d9;--dfs-bg:#f5f3ff;--dfs-vis:rgba(109,40,217,0.14);--bfs:#0369a1;--bfs-bg:#e8f4fd;--bfs-vis:rgba(3,105,161,0.14);--yellow:#b45309;--shadow:0 2px 16px rgba(45,36,32,0.08);--shadow-lg:0 8px 40px rgba(45,36,32,0.13);}
+[data-theme="dark"]{--bg:#0f1117;--bg2:#161b27;--bg3:#1e2535;--panel:#1e2535;--panel2:#252d40;--border:#2a3550;--text:#e8eaf6;--mid:#8a9ac0;--muted:#4a5a7a;--accent:#f97316;--accent-h:#ea6000;--accent-bg:#2d1a0a;--green:#22c55e;--green-bg:#0a2d1a;--red:#ef4444;--red-bg:#2d0a0a;--dfs:#a78bfa;--dfs-bg:#1e1530;--dfs-vis:rgba(167,139,250,0.2);--bfs:#38bdf8;--bfs-bg:#0a1e30;--bfs-vis:rgba(56,189,248,0.2);--yellow:#fbbf24;--shadow:0 2px 16px rgba(0,0,0,0.3);--shadow-lg:0 8px 40px rgba(0,0,0,0.4);}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;transition:background 0.3s,color 0.3s;}
+header{display:flex;align-items:center;justify-content:space-between;padding:11px 22px;background:var(--panel);border-bottom:1px solid var(--border);box-shadow:var(--shadow);position:relative;z-index:50;}
+.logo{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--text);}
+.logo-mark{width:30px;height:30px;border-radius:7px;background:var(--text);display:grid;place-items:center;font-size:13px;}
+.logo-name{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;}
+.hrow{display:flex;align-items:center;gap:7px;}
+.hbtn{padding:6px 13px;border-radius:7px;font-size:12px;font-weight:500;border:1px solid var(--border);background:transparent;color:var(--mid);cursor:pointer;text-decoration:none;transition:all 0.2s;font-family:'DM Sans',sans-serif;}
+.hbtn:hover{border-color:var(--text);color:var(--text);}
+.hbtn.solid{background:var(--accent);border-color:var(--accent);color:white;}
+.hbtn.solid:hover{background:var(--accent-h);}
+.theme-toggle{width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:var(--bg2);cursor:pointer;font-size:13px;display:grid;place-items:center;}
+.user-pill{display:flex;align-items:center;gap:6px;padding:5px 11px;border-radius:20px;background:var(--bg2);border:1px solid var(--border);font-size:12px;color:var(--mid);}
+main{display:grid;grid-template-columns:256px 1fr 284px;height:calc(100vh - 52px);}
+.sidebar{background:var(--panel);border-right:1px solid var(--border);padding:14px 13px;overflow-y:auto;display:flex;flex-direction:column;gap:13px;}
+.ptitle{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding-bottom:7px;border-bottom:1px solid var(--border);}
+.cg{display:flex;flex-direction:column;gap:5px;}
+.cg label{font-size:11px;font-weight:600;color:var(--mid);}
+select{width:100%;padding:7px 9px;border-radius:7px;border:1.5px solid var(--border);background:var(--bg2);color:var(--text);font-size:13px;outline:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:border-color 0.2s;}
+select:hover,select:focus{border-color:var(--accent);}
+.tgrid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.tbtn{padding:7px 5px;border-radius:7px;border:1.5px solid var(--border);background:var(--bg2);color:var(--mid);font-size:11px;font-weight:500;cursor:pointer;transition:all 0.15s;font-family:'DM Sans',sans-serif;text-align:center;}
+.tbtn:hover{border-color:var(--accent);color:var(--accent);}
+.tbtn.active{background:var(--accent);border-color:var(--accent);color:white;}
+.mode-indicator{padding:6px 0 2px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:7px;}
+.mode-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--muted);}
+.divider{height:1px;background:var(--border);}
+.rstack{display:flex;flex-direction:column;gap:7px;}
+.rbtn{padding:9px 12px;border-radius:9px;border:none;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:5px;line-height:1.3;text-align:center;}
+.rbtn:disabled{opacity:0.38;cursor:not-allowed;transform:none!important;}
+.rbtn-dfs{background:var(--dfs);color:white;}
+.rbtn-dfs:hover:not(:disabled){filter:brightness(1.12);transform:translateY(-1px);}
+.rbtn-bfs{background:var(--bfs);color:white;}
+.rbtn-bfs:hover:not(:disabled){filter:brightness(1.12);transform:translateY(-1px);}
+.rbtn-both{background:linear-gradient(90deg,var(--dfs),var(--bfs));color:white;}
+.rbtn-both:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px);}
+.rbtn-outline{background:transparent;border:1.5px solid var(--border);color:var(--mid);}
+.rbtn-outline:hover:not(:disabled){border-color:var(--text);color:var(--text);}
+.rbtn-danger{background:transparent;border:1.5px solid var(--red);color:var(--red);}
+.rbtn-danger:hover:not(:disabled){background:var(--red);color:white;}
+.rbtn-cancel{background:var(--red);color:white;}
+.rbtn-cancel:hover:not(:disabled){filter:brightness(1.1);}
+.speed-row{display:flex;align-items:center;gap:7px;}
+.speed-row input[type=range]{flex:1;accent-color:var(--accent);}
+.speed-row span{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;min-width:26px;text-align:right;}
+.step-row{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--mid);}
+input[type=checkbox]{accent-color:var(--accent);cursor:pointer;}
+.maze-area{background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:auto;padding:22px;position:relative;}
+.maze-frame{border-radius:7px;overflow:hidden;border:2px solid var(--border);box-shadow:var(--shadow-lg);}
+#maze-grid{display:grid;gap:1px;background:var(--border);cursor:crosshair;user-select:none;}
+.cell{width:var(--cs,25px);height:var(--cs,25px);background:var(--bg3);transition:background 0.05s;position:relative;}
+.cell.wall{background:var(--panel2);}
+[data-theme="light"] .cell.wall::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(90,74,66,0.05) 3px,rgba(90,74,66,0.05) 4px);}
+.cell.start{background:var(--green)!important;}
+.cell.end{background:var(--red)!important;}
+.cell.start::after{content:'S';position:absolute;inset:0;display:grid;place-items:center;font-size:9px;font-weight:700;color:white;font-family:'DM Mono',monospace;}
+.cell.end::after{content:'E';position:absolute;inset:0;display:grid;place-items:center;font-size:9px;font-weight:700;color:white;font-family:'DM Mono',monospace;}
+.cell.vis-dfs{background:var(--dfs-vis)!important;}
+.cell.vis-bfs{background:var(--bfs-vis)!important;}
+.cell.path-dfs{background:var(--dfs)!important;box-shadow:0 0 4px var(--dfs);}
+.cell.path-bfs{background:var(--bfs)!important;box-shadow:0 0 4px var(--bfs);}
+.status-pill{position:absolute;bottom:14px;padding:7px 16px;border-radius:20px;font-size:12px;font-family:'DM Mono',monospace;background:var(--panel);border:1px solid var(--border);box-shadow:var(--shadow);transition:all 0.3s;color:var(--mid);max-width:84%;text-align:center;}
+.status-pill.running{border-color:var(--accent);color:var(--accent);}
+.status-pill.done{border-color:var(--green);color:var(--green);}
+.status-pill.failed{border-color:var(--red);color:var(--red);}
+#step-bar{position:absolute;bottom:52px;background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:9px 14px;box-shadow:var(--shadow);display:none;align-items:center;gap:9px;}
+#step-bar.show{display:flex;}
+#step-info{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;}
+.step-btn{padding:6px 14px;border-radius:7px;border:none;background:var(--accent);color:white;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.skip-btn{padding:6px 12px;border-radius:7px;border:1.5px solid var(--border);background:transparent;color:var(--mid);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.rpanel{background:var(--panel);border-left:1px solid var(--border);padding:14px 13px;overflow-y:auto;display:flex;flex-direction:column;gap:13px;}
+.legend{display:flex;flex-direction:column;gap:5px;}
+.leg-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mid);}
+.leg-sw{width:13px;height:13px;border-radius:3px;flex-shrink:0;}
+.rcard{border-radius:11px;border:1.5px solid var(--border);overflow:hidden;margin-bottom:7px;}
+.rcard.dfs{border-top:3px solid var(--dfs);}
+.rcard.bfs{border-top:3px solid var(--bfs);}
+.rcard.winner{border-color:var(--yellow);box-shadow:0 0 16px rgba(180,83,9,0.12);}
+.rcard-head{padding:9px 11px;background:var(--bg2);display:flex;align-items:center;justify-content:space-between;}
+.rcard-algo{font-size:11px;font-weight:700;}
+.rcard-algo.dfs{color:var(--dfs);}
+.rcard-algo.bfs{color:var(--bfs);}
+.winner-tag{font-size:10px;font-weight:700;padding:2px 7px;background:var(--yellow);color:white;border-radius:20px;display:none;}
+.rcard.winner .winner-tag{display:block;}
+.rcard-body{padding:11px;}
+.mrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.mlbl{font-size:11px;color:var(--muted);}
+.mval{font-size:12px;font-weight:600;font-family:'DM Mono',monospace;color:var(--text);}
+.mbar-bg{height:3px;background:var(--border);border-radius:2px;margin-bottom:7px;overflow:hidden;}
+.mbar{height:100%;border-radius:2px;transition:width 0.6s ease;width:0%;}
+.ctable{width:100%;border-collapse:collapse;font-size:12px;}
+.ctable th{padding:6px 7px;text-align:left;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);}
+.ctable td{padding:7px;border-bottom:1px solid rgba(0,0,0,0.04);font-family:'DM Mono',monospace;font-size:11px;}
+[data-theme="dark"] .ctable td{border-bottom:1px solid rgba(255,255,255,0.04);}
+.ctable td.lbl{font-family:'DM Sans',sans-serif;color:var(--mid);font-size:11px;}
+.ctable td.better{color:var(--green);font-weight:700;}
+.save-row{display:flex;flex-direction:column;gap:7px;}
+input[type=text]{width:100%;padding:8px 10px;border-radius:7px;border:1.5px solid var(--border);background:var(--bg2);color:var(--text);font-size:13px;outline:none;font-family:'DM Sans',sans-serif;transition:border-color 0.2s;}
+input[type=text]:focus{border-color:var(--accent);}
+input[type=text]::placeholder{color:var(--muted);}
+.save-btn{width:100%;padding:9px;border-radius:8px;border:none;background:var(--green);color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;}
+.save-btn:hover:not(:disabled){filter:brightness(1.1);}
+.save-btn:disabled{opacity:0.38;cursor:not-allowed;}
+#toast{position:fixed;bottom:22px;right:22px;z-index:9999;padding:10px 18px;border-radius:9px;font-size:13px;font-weight:500;transform:translateY(60px);opacity:0;pointer-events:none;transition:all 0.3s;box-shadow:var(--shadow-lg);}
+#toast.show{transform:translateY(0);opacity:1;}
+#toast.success{background:var(--green);color:white;}
+#toast.error{background:var(--red);color:white;}
+#toast.info{background:var(--accent);color:white;}
+.overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.35);backdrop-filter:blur(3px);display:none;place-items:center;}
+.overlay.open{display:grid;}
+.dialog{background:var(--panel);border-radius:15px;padding:30px;max-width:370px;width:90%;box-shadow:var(--shadow-lg);animation:popIn 0.2s ease;}
+@keyframes popIn{from{transform:scale(0.95);opacity:0;}to{transform:scale(1);opacity:1;}}
+.d-icon{font-size:34px;margin-bottom:11px;}
+.d-title{font-size:17px;font-weight:700;color:var(--text);margin-bottom:7px;}
+.d-msg{font-size:13px;color:var(--mid);line-height:1.6;margin-bottom:22px;}
+.d-btns{display:flex;gap:9px;justify-content:flex-end;}
+.d-cancel{padding:7px 16px;border-radius:7px;border:1.5px solid var(--border);background:transparent;color:var(--mid);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.d-ok{padding:7px 16px;border-radius:7px;border:none;background:var(--accent);color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.modal-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.35);backdrop-filter:blur(3px);display:none;place-items:center;}
+.modal-overlay.open{display:grid;}
+.modal{background:var(--panel);border-radius:15px;padding:28px;max-width:400px;width:90%;position:relative;box-shadow:var(--shadow-lg);animation:popIn 0.25s ease;}
+.modal-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;margin-bottom:4px;}
+.modal-sub{font-size:13px;color:var(--mid);margin-bottom:20px;}
+.fg{margin-bottom:12px;}
+.fg label{display:block;font-size:11px;font-weight:600;color:var(--mid);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;}
+.fg input{width:100%;padding:9px 11px;border-radius:7px;border:1.5px solid var(--border);background:var(--bg2);color:var(--text);font-size:13px;outline:none;font-family:'DM Sans',sans-serif;transition:border-color 0.2s;}
+.fg input:focus{border-color:var(--accent);}
+.pw-hint{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.6;}
+.ferr{font-size:12px;color:var(--red);margin-bottom:8px;display:none;padding:7px 10px;background:var(--red-bg);border-radius:6px;}
+.ferr.show{display:block;}
+.btn-full{width:100%;padding:11px;border-radius:8px;border:none;background:var(--accent);color:white;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background 0.2s;}
+.btn-full:hover{background:var(--accent-h);}
+.modal-switch{text-align:center;margin-top:13px;font-size:13px;color:var(--mid);}
+.modal-switch a{color:var(--accent);font-weight:600;cursor:pointer;}
+.mclose{position:absolute;top:13px;right:15px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+</style>
+</head>
+<body>
+<header>
+  <a href="/" class="logo">
+    <div class="logo-mark">🧩</div>
+    <span class="logo-name">MazeSolver</span>
+  </a>
+  <div class="hrow">
+    <a href="/" class="hbtn">← Home</a>
+    <a href="/history" class="hbtn">My Results</a>
+    <a href="/settings" class="hbtn">Settings</a>
+    <button class="theme-toggle" id="theme-toggle" title="Toggle theme">🌙</button>
+    {% if user %}
+      <div class="user-pill">👤 {{ user.username }}</div>
+      <button class="hbtn" id="btn-logout">Sign Out</button>
+    {% else %}
+      <button class="hbtn" id="btn-login">Sign In</button>
+      <button class="hbtn solid" id="btn-register">Register</button>
+    {% endif %}
+  </div>
+</header>
+
+<main>
+<aside class="sidebar">
+  <div class="ptitle">Maze Setup</div>
+  <div class="cg">
+    <label>Maze Size</label>
+    <select id="grid-size">
+      <option value="11">Small (11×11)</option>
+      <option value="15" selected>Medium (15×15)</option>
+      <option value="21">Large (21×21)</option>
+      <option value="31">Extra Large (31×31)</option>
+    </select>
+  </div>
+  <button class="rbtn rbtn-outline" id="btn-generate" style="width:100%;font-size:12px">⚡ Generate Random Maze</button>
+  <div class="divider"></div>
+  <div class="ptitle">Drawing Tools</div>
+  <div class="tgrid">
+    <button class="tbtn active" data-mode="wall">🧱 Wall</button>
+    <button class="tbtn" data-mode="erase">✏️ Erase</button>
+    <button class="tbtn" data-mode="start">🟢 Start</button>
+    <button class="tbtn" data-mode="end">🔴 Finish</button>
+  </div>
+  <div class="mode-indicator">
+    <div class="mode-dot" id="mode-dot"></div>
+    <span id="mode-text">Click and drag to draw walls</span>
+  </div>
+  <button class="rbtn rbtn-danger" id="btn-clear" style="width:100%;font-size:12px">🗑 Clear Everything</button>
+  <div class="divider"></div>
+  <div class="ptitle">Run the Solvers</div>
+  <div class="cg">
+    <label>Animation Speed</label>
+    <div class="speed-row">
+      <input type="range" id="speed" min="1" max="100" value="60"/>
+      <span id="speed-val">60</span>
+    </div>
+  </div>
+  <div class="step-row">
+    <input type="checkbox" id="step-mode"/>
+    <label for="step-mode">Pause after each step</label>
+  </div>
+  <div class="rstack">
+    <button class="rbtn rbtn-dfs" id="btn-dfs">▶ Run Depth-First Search (DFS)</button>
+    <button class="rbtn rbtn-bfs" id="btn-bfs">▶ Run Breadth-First Search (BFS)</button>
+    <button class="rbtn rbtn-both" id="btn-both">⚔ Run Both &amp; Compare</button>
+    <button class="rbtn rbtn-cancel" id="btn-cancel" style="display:none">✕ Cancel</button>
+    <button class="rbtn" id="btn-pause" style="display:none;background:var(--yellow);color:white;">⏸ Pause</button>
+  </div>
+</aside>
+
+<section class="maze-area">
+  <div class="maze-frame"><div id="maze-grid"></div></div>
+  <div class="status-pill" id="status-pill">Draw a maze or generate one to begin</div>
+  <div id="step-bar">
+    <span id="step-info"></span>
+    <button class="step-btn" id="btn-next">Next →</button>
+    <button class="skip-btn" id="btn-skip">Skip to End</button>
+  </div>
+</section>
+
+<aside class="rpanel">
+  <div class="ptitle">Color Guide</div>
+  <div class="legend">
+    <div class="leg-item"><div class="leg-sw" style="background:var(--bg3);border:1px solid var(--border)"></div>Open path</div>
+    <div class="leg-item"><div class="leg-sw" style="background:var(--panel2)"></div>Wall (blocked)</div>
+    <div class="leg-item"><div class="leg-sw" style="background:var(--green)"></div>Start point (S)</div>
+    <div class="leg-item"><div class="leg-sw" style="background:var(--red)"></div>Finish point (E)</div>
+    <div class="leg-item"><div class="leg-sw" style="background:var(--dfs-vis);border:1px solid var(--dfs)"></div>DFS explored</div>
+    <div class="leg-item"><div class="leg-sw" style="background:var(--bfs-vis);border:1px solid var(--bfs)"></div>BFS explored</div>
+    <div class="leg-item"><div class="leg-sw" style="background:var(--dfs)"></div>DFS solution path</div>
+    <div class="leg-item"><div class="leg-sw" style="background:var(--bfs)"></div>BFS solution path</div>
+  </div>
+  <div class="divider"></div>
+  <div class="ptitle">Results</div>
+  <div id="results-area">
+    <p style="font-size:12px;color:var(--muted);text-align:center;padding:14px 0">Run a solver to see results here</p>
+  </div>
+  <div id="compare-area" style="display:none">
+    <div class="divider" style="margin-bottom:11px"></div>
+    <div class="ptitle" style="margin-bottom:9px">Side-by-Side Comparison</div>
+    <table class="ctable">
+      <thead><tr>
+        <th>Measurement</th>
+        <th style="color:var(--dfs)">DFS</th>
+        <th style="color:var(--bfs)">BFS</th>
+      </tr></thead>
+      <tbody id="compare-tbody"></tbody>
+    </table>
+  </div>
+  <div class="divider"></div>
+  <div class="ptitle">Save This Run</div>
+  <div class="save-row">
+    <input type="text" id="maze-name" placeholder="Give your maze a name…"/>
+    <button class="save-btn" id="btn-save" disabled>💾 Save to My Results</button>
+  </div>
+</aside>
+</main>
+
+<div id="toast"></div>
+
+<div class="overlay" id="confirm-overlay">
+  <div class="dialog">
+    <div class="d-icon" id="ci">⚠️</div>
+    <div class="d-title" id="ct">Are you sure?</div>
+    <div class="d-msg" id="cm"></div>
+    <div class="d-btns">
+      <button class="d-cancel" id="c-cancel">Cancel</button>
+      <button class="d-ok" id="c-ok">Yes, go ahead</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-login">
+  <div class="modal">
+    <button class="mclose" onclick="closeModal('modal-login')">×</button>
+    <div class="modal-title">Welcome back</div>
+    <div class="modal-sub">Sign in to save and access your results.</div>
+    <div class="fg"><label>Username or Email</label><input type="text" id="l-user" placeholder="Your username or email"/></div>
+    <div class="fg"><label>Password</label><input type="password" id="l-pass" placeholder="Your password"/></div>
+    <div class="ferr" id="l-err"></div>
+    <button class="btn-full" id="do-login">Sign In</button>
+    <div class="modal-switch">No account? <a onclick="switchModal('modal-login','modal-register')">Create one free →</a></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-register">
+  <div class="modal">
+    <button class="mclose" onclick="closeModal('modal-register')">×</button>
+    <div class="modal-title">Create account</div>
+    <div class="modal-sub">Free. Save unlimited mazes and results.</div>
+    <div class="fg"><label>Username</label><input type="text" id="r-user" placeholder="Letters, numbers, underscores"/></div>
+    <div class="fg"><label>Email</label><input type="email" id="r-email" placeholder="yourname@gmail.com"/></div>
+    <div class="fg">
+      <label>Password</label>
+      <input type="password" id="r-pass" placeholder="Create a strong password"/>
+      <div class="pw-hint">At least 8 characters · One uppercase letter · One number</div>
+    </div>
+    <div class="ferr" id="r-err"></div>
+    <button class="btn-full" id="do-register">Create Account</button>
+    <div class="modal-switch">Already registered? <a onclick="switchModal('modal-register','modal-login')">Sign in →</a></div>
+  </div>
+</div>
+
+<script>
+const html=document.documentElement;
+const savedTheme=localStorage.getItem('theme')||'light';
+html.setAttribute('data-theme',savedTheme);
+function updateThemeIcon(){const b=document.getElementById('theme-toggle');if(b)b.textContent=html.getAttribute('data-theme')==='dark'?'☀️':'🌙';}
+updateThemeIcon();
+document.getElementById('theme-toggle').addEventListener('click',()=>{
+  const n=html.getAttribute('data-theme')==='dark'?'light':'dark';
+  html.setAttribute('data-theme',n);localStorage.setItem('theme',n);updateThemeIcon();
+});
+
+function formatTime(ms){
+  if(ms===null||ms===undefined)return'—';
+  if(ms<1000)return ms.toFixed(2)+' ms';
+  const s=ms/1000;
+  if(s<60)return s.toFixed(3)+' seconds';
+  const m=Math.floor(s/60),rs=(s%60).toFixed(1);
+  if(m<60)return`${m}m ${rs}s`;
+  const h=Math.floor(m/60),rm=m%60;
+  return`${h}h ${rm}m`;
+}
+
+const S={rows:15,cols:15,grid:[],start:[1,1],end:[13,13],mode:'wall',drawing:false,running:false,results:{dfs:null,bfs:null},stepMode:false,stepResolve:null,skipFlag:false,cancelFlag:false,pauseFlag:false,lastExplanation:'',editingId:null};
+
+function initGrid(rows,cols,gridData=null){
+  S.rows=rows;S.cols=cols;
+  const cs=rows<=15?25:rows<=21?19:13;
+  document.documentElement.style.setProperty('--cs',cs+'px');
+  if(!gridData){
+    S.grid=Array.from({length:rows},()=>Array(cols).fill(0));
+    for(let r=0;r<rows;r++){S.grid[r][0]=1;S.grid[r][cols-1]=1;}
+    for(let c=0;c<cols;c++){S.grid[0][c]=1;S.grid[rows-1][c]=1;}
+  }else{S.grid=gridData;}
+  S.start=[1,1];S.end=[rows-2,cols-2];
+  S.grid[S.start[0]][S.start[1]]=0;S.grid[S.end[0]][S.end[1]]=0;
+  renderGrid();S.results={dfs:null,bfs:null};
+  resetResultsPanel();
+  document.getElementById('btn-save').disabled=true;
+  document.getElementById('maze-name').value='';
+}
+
+function resetResultsPanel(){
+  document.getElementById('results-area').innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:14px 0">Run a solver to see results here</p>';
+  document.getElementById('compare-area').style.display='none';
+}
+
+function renderGrid(){
+  const el=document.getElementById('maze-grid');
+  el.style.gridTemplateColumns=`repeat(${S.cols},var(--cs,25px))`;
+  el.innerHTML='';
+  for(let r=0;r<S.rows;r++)for(let c=0;c<S.cols;c++){
+    const d=document.createElement('div');
+    d.className='cell';d.dataset.r=r;d.dataset.c=c;
+    refreshCell(d,r,c);el.appendChild(d);
+  }
+  el.addEventListener('mousedown',onDown);
+  el.addEventListener('mousemove',onMove);
+  document.addEventListener('mouseup',()=>S.drawing=false);
+}
+
+function getCell(r,c){return document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);}
+
+function refreshCell(el,r,c){
+  if(!el)return;
+  let cls='cell';
+  if(r===S.start[0]&&c===S.start[1])cls+=' start';
+  else if(r===S.end[0]&&c===S.end[1])cls+=' end';
+  else if(S.grid[r][c]===1)cls+=' wall';
+  el.className=cls;
+}
+
+function refreshAll(){for(let r=0;r<S.rows;r++)for(let c=0;c<S.cols;c++)refreshCell(getCell(r,c),r,c);}
+function isStartEnd(r,c){return(r===S.start[0]&&c===S.start[1])||(r===S.end[0]&&c===S.end[1]);}
+
+function onDown(e){if(S.running)return;const cell=e.target.closest('.cell');if(!cell)return;S.drawing=true;applyTool(cell);}
+function onMove(e){if(!S.drawing||S.running)return;const cell=e.target.closest('.cell');if(!cell)return;applyTool(cell);}
+function applyTool(cell){
+  const r=+cell.dataset.r,c=+cell.dataset.c;
+  if(S.mode==='start'){S.grid[S.start[0]][S.start[1]]=0;S.start=[r,c];S.grid[r][c]=0;refreshAll();}
+  else if(S.mode==='end'){S.grid[S.end[0]][S.end[1]]=0;S.end=[r,c];S.grid[r][c]=0;refreshAll();}
+  else if(S.mode==='wall'){if(!isStartEnd(r,c)){S.grid[r][c]=1;refreshCell(cell,r,c);}}
+  else if(S.mode==='erase'){if(!isStartEnd(r,c)){S.grid[r][c]=0;refreshCell(cell,r,c);}}
+}
+
+const delay=ms=>new Promise(r=>setTimeout(r,ms));
+function colorCell(r,c,cls){const el=getCell(r,c);if(!el||isStartEnd(r,c))return;el.className='cell '+cls;}
+
+async function animate(result,visCls,pathCls){
+  S.skipFlag=false;
+  const iv=Math.max(5,200-(+document.getElementById('speed').value)*2);
+  if(S.stepMode)document.getElementById('step-bar').classList.add('show');
+  for(let i=0;i<result.visited.length;i++){
+    if(S.skipFlag||S.cancelFlag)break;
+    while(S.pauseFlag&&!S.cancelFlag) await delay(100);
+    if(S.cancelFlag)break;
+    const[r,c]=result.visited[i];colorCell(r,c,visCls);
+    if(S.stepMode){document.getElementById('step-info').textContent=`Step ${i+1} of ${result.visited.length} spots checked`;await waitStep();if(S.cancelFlag)break;}
+    else await delay(iv);
+  }
+  if(!S.cancelFlag){
+    for(let i=0;i<result.path.length;i++){
+      if(S.skipFlag||S.cancelFlag)break;
+      while(S.pauseFlag&&!S.cancelFlag) await delay(100);
+      if(S.cancelFlag)break;
+      const[r,c]=result.path[i];colorCell(r,c,pathCls);
+      if(S.stepMode)await waitStep();else await delay(iv/2);
+    }
+  }
+  document.getElementById('step-bar').classList.remove('show');
+}
+
+function waitStep(){return new Promise(res=>{S.stepResolve=res;});}
+
+function setRunBtnsDisabled(v){
+  ['btn-dfs','btn-bfs','btn-both','btn-generate','btn-clear'].forEach(id=>{const el=document.getElementById(id);if(el)el.disabled=v;});
+  document.getElementById('btn-cancel').style.display=v?'flex':'none';
+  document.getElementById('btn-pause').style.display=v?'flex':'none';
+}
+
+async function runAlgo(algo){
+  if(S.running)return;
+  S.running=true;S.cancelFlag=false;setRunBtnsDisabled(true);
+  refreshAll();resetResultsPanel();
+  // Clear the other algo result so only this one shows
+  S.results={dfs:null,bfs:null};
+  setStatus(`Running ${algo}…`,'running');
+  try{
+    const res=await fetch('/api/solve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({grid:S.grid,start:S.start,end:S.end,algorithm:algo})});
+    const d=await res.json();
+    S.results[algo.toLowerCase()]=d;
+    if(!S.cancelFlag)await animate(d,`vis-${algo.toLowerCase()}`,`path-${algo.toLowerCase()}`);
+    if(S.cancelFlag){setStatus('Stopped.','failed');}
+    else if(d.solved){
+      setStatus(`✓ Exit found! Path: ${d.path_length} steps · Spots checked: ${d.nodes_explored} · Time: ${formatTime(d.execution_time_ms)}`,'done');
+      showCard(algo,d);
+    }else{
+      setStatus(`No path found. Checked ${d.nodes_explored} spots.`,'failed');
+      showCard(algo,d);
+    }
+  }catch(e){setStatus('Could not reach the server. Is Flask running?','failed');toast('Server not reachable.','error');}
+  S.running=false;setRunBtnsDisabled(false);checkSave();
+}
+
+async function runBoth(){
+  if(S.running)return;
+  S.running=true;S.cancelFlag=false;setRunBtnsDisabled(true);
+  refreshAll();resetResultsPanel();S.results={dfs:null,bfs:null};
+  setStatus('Running both solvers…','running');
+  try{
+    const res=await fetch('/api/solve_both',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({grid:S.grid,start:S.start,end:S.end})});
+    const d=await res.json();
+    S.results.dfs=d.dfs;S.results.bfs=d.bfs;
+    if(!S.cancelFlag)await animate(d.dfs,'vis-dfs','path-dfs');
+    if(!S.cancelFlag){refreshAll();await animate(d.bfs,'vis-bfs','path-bfs');}
+    if(S.cancelFlag){setStatus('Stopped.','failed');}
+    else{
+      showCompare(d.dfs, d.bfs);
+      setStatus('Both solvers finished! See the comparison →','done');
+    }
+  }catch(e){setStatus('Could not reach the server.','failed');toast('Server not reachable.','error');}
+  S.running=false;setRunBtnsDisabled(false);checkSave();
+}
+
+async function generateMaze(){
+  const size=+document.getElementById('grid-size').value;
+  setStatus('Generating maze…','running');
+  try{
+    const res=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rows:size,cols:size})});
+    const d=await res.json();
+    initGrid(d.grid.length,d.grid[0].length,d.grid);
+    S.start=d.start;S.end=d.end;refreshAll();
+    setStatus('Maze ready! Choose a solver to begin.','done');
+  }catch(e){initGrid(size,size);setStatus('Server offline — blank maze created.','failed');}
+}
+
+function showCard(algo,r,badges=[]){
+  const area=document.getElementById('results-area');
+  document.getElementById(`card-${algo.toLowerCase()}`)?.remove();
+  const ph=area.querySelector('p');if(ph)ph.remove();
+  const c=document.createElement('div');
+  c.className=`rcard ${algo.toLowerCase()}`;c.id=`card-${algo.toLowerCase()}`;
+  const col=algo==='DFS'?'var(--dfs)':'var(--bfs)';
+  const visited=r.nodes_explored??r.cells_visited??0;
+  const badgeHTML=badges.map(b=>{
+    if(b==='shortest')return`<span style="font-size:10px;font-weight:700;padding:2px 8px;background:var(--yellow);color:white;border-radius:20px;">✓ SHORTEST PATH</span>`;
+    if(b==='fastest') return`<span style="font-size:10px;font-weight:700;padding:2px 8px;background:var(--green);color:white;border-radius:20px;">⚡ FASTEST</span>`;
+    return'';
+  }).join(' ');
+  c.innerHTML=`
+    <div class="rcard-head" style="gap:6px;flex-wrap:wrap;">
+      <span class="rcard-algo ${algo.toLowerCase()}">${algo} — ${algo==='DFS'?'Depth-First Search':'Breadth-First Search'}</span>
+      ${badgeHTML}
+    </div>
+    <div class="rcard-body">
+      <div class="mrow"><span class="mlbl">Result</span><span class="mval" style="color:${r.solved?'var(--green)':'var(--red)'}">${r.solved?'✓ Exit found':'✗ No path found'}</span></div>
+      <div class="mrow"><span class="mlbl">Spots checked</span><span class="mval" style="color:${col}">${visited}</span></div>
+      <div class="mbar-bg"><div class="mbar" style="background:${col}" id="bar-${algo.toLowerCase()}"></div></div>
+      <div class="mrow"><span class="mlbl">Solution length</span><span class="mval">${r.solved?r.path_length+' steps':'N/A'}</span></div>
+      <div class="mrow"><span class="mlbl">Time taken</span><span class="mval" style="color:${col}">${formatTime(r.execution_time_ms)}</span></div>
+    </div>`;
+  area.appendChild(c);
+  setTimeout(()=>{const b=document.getElementById(`bar-${algo.toLowerCase()}`);if(b)b.style.width='75%';},80);
+}
+
+function generateExplanation(d,b){
+  if(!d.solved&&!b.solved) return'Neither solver could find a path. The start and finish may be completely surrounded by walls.';
+  if(!d.solved) return'DFS could not find any path, but BFS did. BFS explores all nearby spots evenly, which helps it reach the finish even in tricky layouts.';
+  if(!b.solved) return'BFS could not find a path, but DFS did. This is unusual — it likely means the exit was only reachable through a very specific corridor that DFS stumbled into first.';
+  const dPath=d.path_length,bPath=b.path_length;
+  const dTime=d.execution_time_ms,bTime=b.execution_time_ms;
+  const vd=d.nodes_explored??d.cells_visited??0;
+  const vb=b.nodes_explored??b.cells_visited??0;
+  let lines=[];
+  if(dPath===bPath) lines.push(`Both solvers found a path of the same length (${dPath} steps), so neither has a shorter route on this maze.`);
+  else if(bPath<dPath) lines.push(`BFS found the shorter path (${bPath} steps vs DFS's ${dPath} steps). This is expected — BFS always explores nearest spots first, guaranteeing the shortest possible route. DFS went deep into one direction and found a valid but longer path.`);
+  else lines.push(`DFS happened to find a shorter path (${dPath} steps vs BFS's ${bPath} steps) on this maze. This can occur when the direct route to the exit aligns with the direction DFS naturally explores first.`);
+  if(dTime<bTime) lines.push(`DFS was faster (${formatTime(dTime)} vs ${formatTime(bTime)}). DFS commits to one path and stops as soon as it finds the exit, so it tends to be quicker when a clear deep route exists.`);
+  else if(bTime<dTime) lines.push(`BFS finished faster (${formatTime(bTime)} vs ${formatTime(dTime)}). On this maze BFS reached the exit while spreading outward, without the backtracking that DFS had to do.`);
+  else lines.push(`Both solvers finished in about the same time on this maze.`);
+  if(vd<vb) lines.push(`DFS also checked fewer spots (${vd} vs ${vb}), meaning it explored less of the maze overall.`);
+  else if(vb<vd) lines.push(`BFS checked fewer spots (${vb} vs ${vd}), spreading toward the exit more directly.`);
+  return lines.join(' ');
+}
+
+function showCompare(d,b){
+  document.getElementById('compare-area').style.display='block';
+  const vd=d.nodes_explored??d.cells_visited??0;
+  const vb=b.nodes_explored??b.cells_visited??0;
+  const rows=[
+    {lbl:'Spots checked',dv:vd,bv:vb,lower:true,num:true},
+    {lbl:'Solution length',dv:d.solved?d.path_length:'—',bv:b.solved?b.path_length:'—',lower:true,num:true},
+    {lbl:'Time taken',dv:formatTime(d.execution_time_ms),bv:formatTime(b.execution_time_ms),lower:false,num:false},
+    {lbl:'Found exit?',dv:d.solved?'Yes':'No',bv:b.solved?'Yes':'No',lower:false,num:false}
+  ];
+  document.getElementById('compare-tbody').innerHTML=rows.map(row=>{
+    let dc='',bc='';
+    if(row.lower&&row.num&&typeof row.dv==='number'&&typeof row.bv==='number'){
+      if(row.dv<row.bv)dc='better';else if(row.bv<row.dv)bc='better';
+    }
+    return`<tr><td class="lbl">${row.lbl}</td><td class="${dc}">${row.dv}</td><td class="${bc}">${row.bv}</td></tr>`;
+  }).join('');
+  const dfsBadges=[],bfsBadges=[];
+  if(d.solved&&b.solved){
+    const max=Math.max(vd,vb);
+    const db=document.getElementById('bar-dfs'),bb=document.getElementById('bar-bfs');
+    if(db)db.style.width=(vd/max*100)+'%';if(bb)bb.style.width=(vb/max*100)+'%';
+    if(d.path_length<=b.path_length)dfsBadges.push('shortest');else bfsBadges.push('shortest');
+    if(d.execution_time_ms<=b.execution_time_ms)dfsBadges.push('fastest');else bfsBadges.push('fastest');
+  }else if(d.solved){dfsBadges.push('shortest');dfsBadges.push('fastest');}
+  else if(b.solved){bfsBadges.push('shortest');bfsBadges.push('fastest');}
+  showCard('DFS',d,dfsBadges);
+  showCard('BFS',b,bfsBadges);
+  const explanation=generateExplanation(d,b);
+  S.lastExplanation=explanation;
+  document.getElementById('explanation-box')?.remove();
+  const box=document.createElement('div');
+  box.id='explanation-box';
+  box.style.cssText='margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--bg2);border:1px solid var(--border);font-size:12px;color:var(--mid);line-height:1.7;';
+  box.innerHTML=`<div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Why these results?</div>${explanation}`;
+  document.getElementById('results-area').appendChild(box);
+}
+
+function setStatus(msg,type=''){const el=document.getElementById('status-pill');el.textContent=msg;el.className='status-pill '+type;}
+function checkSave(){document.getElementById('btn-save').disabled=!(S.results.dfs||S.results.bfs);}
+function toast(msg,type='info'){const t=document.getElementById('toast');t.textContent=msg;t.className=`show ${type}`;setTimeout(()=>t.className=type,3500);}
+
+function confirm(icon,title,msg,okLabel='Yes, go ahead'){
+  return new Promise(res=>{
+    document.getElementById('ci').textContent=icon;document.getElementById('ct').textContent=title;
+    document.getElementById('cm').textContent=msg;document.getElementById('c-ok').textContent=okLabel;
+    document.getElementById('confirm-overlay').classList.add('open');
+    const ok=document.getElementById('c-ok'),cancel=document.getElementById('c-cancel');
+    function cleanup(r){document.getElementById('confirm-overlay').classList.remove('open');ok.onclick=null;cancel.onclick=null;res(r);}
+    ok.onclick=()=>cleanup(true);cancel.onclick=()=>cleanup(false);
+  });
+}
+
+async function saveRun(){
+  const name=(document.getElementById('maze-name').value||'').trim();
+  if(!name){toast('Please enter a name for this maze first.','error');return;}
+  try{
+    if(S.editingId){
+      const res=await fetch(`/api/maze/${S.editingId}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({full_update:true,grid:S.grid,start:S.start,end:S.end,name,dfs:S.results.dfs,bfs:S.results.bfs,explanation:S.lastExplanation||''})});
+      const d=await res.json();
+      if(d.status==='updated'){toast('✓ Updated! Changes saved to My Results.','success');setTimeout(()=>{location.href='/history';},1200);}
+      else toast(d.error||'Could not update.','error');
+    }else{
+      const res=await fetch('/api/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({grid:S.grid,start:S.start,end:S.end,name,dfs:S.results.dfs,bfs:S.results.bfs,explanation:S.lastExplanation||''})});
+      const d=await res.json();
+      if(d.status==='saved')toast('✓ Saved! View it in My Results.','success');
+      else toast(d.error||'Could not save.','error');
+    }
+  }catch(e){toast('Server not reachable.','error');}
+}
+
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function switchModal(a,b){closeModal(a);openModal(b);}
+
+document.getElementById('btn-login')?.addEventListener('click',()=>openModal('modal-login'));
+document.getElementById('btn-register')?.addEventListener('click',()=>openModal('modal-register'));
+['modal-login','modal-register'].forEach(id=>{document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal(id);});});
+
+document.getElementById('do-login')?.addEventListener('click',async()=>{
+  const u=document.getElementById('l-user').value.trim(),p=document.getElementById('l-pass').value;
+  const err=document.getElementById('l-err');err.classList.remove('show');
+  const res=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+  const d=await res.json();
+  if(d.error){err.textContent=d.error;err.classList.add('show');}else location.href='/solver';
+});
+
+document.getElementById('do-register')?.addEventListener('click',async()=>{
+  const u=document.getElementById('r-user').value.trim(),e=document.getElementById('r-email').value.trim(),p=document.getElementById('r-pass').value;
+  const err=document.getElementById('r-err');err.classList.remove('show');
+  const res=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,email:e,password:p})});
+  const d=await res.json();
+  if(d.error){err.textContent=d.error;err.classList.add('show');}else location.reload();
+});
+
+document.getElementById('btn-logout')?.addEventListener('click',async()=>{
+  const ok=await confirm('👋','Sign out?','You will be signed out. Your unsaved maze will be lost.','Sign Out');
+  if(ok){await fetch('/api/logout',{method:'POST'});location.href='/';}
+});
+
+const modeInfo={wall:{text:'Click and drag to draw walls',color:'var(--mid)'},erase:{text:'Click and drag to erase walls',color:'var(--muted)'},start:{text:'Click an open cell to move Start',color:'var(--green)'},end:{text:'Click an open cell to move Finish',color:'var(--red)'}};
+document.querySelectorAll('.tbtn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');S.mode=btn.dataset.mode;
+    const m=modeInfo[S.mode];
+    document.getElementById('mode-text').textContent=m.text;
+    document.getElementById('mode-dot').style.background=m.color;
+  });
+});
+
+document.getElementById('grid-size').addEventListener('change',e=>initGrid(+e.target.value,+e.target.value));
+document.getElementById('btn-generate').addEventListener('click',generateMaze);
+document.getElementById('btn-clear').addEventListener('click',async()=>{
+  const needsConfirm=localStorage.getItem('confirm-clear')!=='false';
+  if(needsConfirm){
+    const ok=await confirm('🗑','Clear everything?','This will remove all walls and reset the maze. This cannot be undone.','Yes, clear it');
+    if(!ok)return;
+  }
+  initGrid(S.rows,S.cols);setStatus('Maze cleared. Start fresh!');
+});
+document.getElementById('btn-dfs').addEventListener('click',()=>runAlgo('DFS'));
+document.getElementById('btn-bfs').addEventListener('click',()=>runAlgo('BFS'));
+document.getElementById('btn-both').addEventListener('click',runBoth);
+document.getElementById('btn-cancel').addEventListener('click',()=>{
+  S.cancelFlag=true;S.skipFlag=true;S.pauseFlag=false;
+  document.getElementById('btn-pause').textContent='⏸ Pause';
+  document.getElementById('btn-pause').style.background='var(--yellow)';
+  if(S.stepResolve){S.stepResolve();S.stepResolve=null;}
+  setTimeout(()=>{
+    refreshAll();
+    resetResultsPanel();
+    S.results={dfs:null,bfs:null};
+    document.getElementById('btn-save').disabled=true;
+    setStatus('Cancelled. Maze has been reset.','failed');
+  },120);
+});
+document.getElementById('btn-pause').addEventListener('click',()=>{
+  S.pauseFlag=!S.pauseFlag;
+  const btn=document.getElementById('btn-pause');
+  btn.textContent=S.pauseFlag?'▶ Resume':'⏸ Pause';
+  btn.style.background=S.pauseFlag?'var(--green)':'var(--yellow)';
+  setStatus(S.pauseFlag?'Paused. Click Resume to continue.':'Resuming…',S.pauseFlag?'failed':'running');
+});
+
+document.getElementById('btn-save').addEventListener('click',saveRun);
+document.getElementById('btn-next').addEventListener('click',()=>{if(S.stepResolve){S.stepResolve();S.stepResolve=null;}});
+document.getElementById('btn-skip').addEventListener('click',()=>{S.skipFlag=true;if(S.stepResolve){S.stepResolve();S.stepResolve=null;}});
+document.getElementById('speed').addEventListener('input',e=>document.getElementById('speed-val').textContent=e.target.value);
+document.getElementById('step-mode').addEventListener('change',e=>S.stepMode=e.target.checked);
+
+// Load maze from history for editing
+const urlParams = new URLSearchParams(window.location.search);
+const editId = urlParams.get('edit');
+const fromHistory = urlParams.get('from') === 'history';
+if(editId){
+  // Inject Back button into header if came from history
+  if(fromHistory){
+    const backBtn = document.createElement('a');
+    backBtn.href = '/history';
+    backBtn.className = 'hbtn';
+    backBtn.textContent = '← Back to Results';
+    backBtn.style.marginRight = '4px';
+    document.querySelector('.hrow').prepend(backBtn);
+  }
+  fetch(`/api/maze/${editId}`).then(r=>r.json()).then(data=>{
+    if(!data.maze) return;
+    const m=data.maze;
+    initGrid(m.grid_rows, m.grid_cols, m.grid_data);
+    S.start=[m.start_row, m.start_col];
+    S.end=[m.end_row, m.end_col];
+    refreshAll();
+    S.editingId=+editId;
+    document.getElementById('maze-name').value=m.maze_name;
+    setStatus(`Loaded "${m.maze_name}" for editing. Make your changes then run a solver.`,'done');
+
+    // Show original results in the results panel
+    const dfs=data.results.DFS, bfs=data.results.BFS;
+    if(dfs||bfs){
+      resetResultsPanel();
+      if(dfs){ S.results.dfs=dfs; showCard('DFS',dfs); }
+      if(bfs){ S.results.bfs=bfs; showCard('BFS',bfs); }
+      if(dfs&&bfs) showCompare(dfs,bfs);
+      const note=document.createElement('div');
+      note.style.cssText='margin-top:8px;padding:8px 11px;border-radius:8px;background:var(--accent-bg);border:1px solid var(--border);font-size:11px;color:var(--mid);line-height:1.6;';
+      note.textContent='These are the original results. Run a solver again to update them.';
+      document.getElementById('results-area').appendChild(note);
+      document.getElementById('btn-save').disabled=false;
+    }
+  }).catch(()=>{});
+} else {
+  const defaultSize=+(localStorage.getItem('default-size')||15);
+  const sizeEl=document.getElementById('grid-size');
+  if(sizeEl)sizeEl.value=defaultSize;
+  const defaultSpeed=+(localStorage.getItem('default-speed')||60);
+  const speedEl=document.getElementById('speed');
+  if(speedEl){speedEl.value=defaultSpeed;document.getElementById('speed-val').textContent=defaultSpeed;}
+  initGrid(defaultSize,defaultSize);
+}
+</script>
+</body>
+</html>

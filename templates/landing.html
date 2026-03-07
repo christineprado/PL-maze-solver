@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Maze Solver — DFS vs BFS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --cream:#faf7f2; --warm:#f5efe6; --sand:#e8ddd0;
+  --brown:#8b6f5e; --dark:#2d2420; --mid:#5a4a42;
+  --green:#2d7a4f; --green-light:#e8f5ee;
+  --blue:#2563a8; --blue-light:#e8f0fb;
+  --accent:#e85d26; --accent-light:#fdf0ea;
+  --border:#ddd5cc;
+  font-family:'DM Sans',sans-serif;
+}
+html,body{min-height:100%;background:var(--cream);color:var(--dark);}
+
+/* ── HEADER ── */
+header{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 48px;
+  background:rgba(250,247,242,0.92);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--dark);}
+.logo-mark{
+  width:36px;height:36px;border-radius:8px;
+  background:var(--dark);
+  display:grid;place-items:center;font-size:16px;
+}
+.logo-name{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;}
+.header-actions{display:flex;align-items:center;gap:10px;}
+.btn-ghost{
+  padding:8px 18px;border-radius:8px;border:1px solid var(--border);
+  background:transparent;color:var(--mid);font-size:13px;font-weight:500;
+  cursor:pointer;text-decoration:none;transition:all 0.2s;font-family:'DM Sans',sans-serif;
+}
+.btn-ghost:hover{border-color:var(--dark);color:var(--dark);}
+.btn-solid{
+  padding:8px 18px;border-radius:8px;border:none;
+  background:var(--dark);color:#fff;font-size:13px;font-weight:600;
+  cursor:pointer;text-decoration:none;transition:all 0.2s;font-family:'DM Sans',sans-serif;
+}
+.btn-solid:hover{background:var(--mid);}
+.user-chip{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 14px;border-radius:20px;
+  background:var(--warm);border:1px solid var(--border);
+  font-size:13px;color:var(--mid);
+}
+
+/* ── HERO ── */
+.hero{
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:120px 48px 80px;
+  position:relative;overflow:hidden;
+}
+
+/* Animated grid background */
+.hero-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size:48px 48px;
+  opacity:0.4;
+  mask-image:radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 100%);
+}
+
+/* Floating maze cells decoration */
+.hero-deco{
+  position:absolute;inset:0;pointer-events:none;overflow:hidden;
+}
+.deco-cell{
+  position:absolute;border-radius:6px;
+  animation:floatCell 8s ease-in-out infinite;
+  opacity:0;
+}
+@keyframes floatCell{
+  0%{opacity:0;transform:translateY(20px);}
+  20%{opacity:1;}
+  80%{opacity:1;}
+  100%{opacity:0;transform:translateY(-20px);}
+}
+
+.hero-content{position:relative;z-index:1;text-align:center;max-width:760px;}
+.hero-tag{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 16px;border-radius:20px;
+  background:var(--accent-light);border:1px solid #f0c4ac;
+  font-size:12px;font-weight:600;color:var(--accent);
+  letter-spacing:0.5px;text-transform:uppercase;
+  margin-bottom:28px;
+}
+.hero-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(48px,7vw,88px);
+  font-weight:900;line-height:1.0;
+  color:var(--dark);
+  margin-bottom:24px;
+}
+.hero-title em{
+  font-style:italic;
+  background:linear-gradient(135deg,var(--accent),var(--brown));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero-sub{
+  font-size:18px;font-weight:300;color:var(--mid);
+  line-height:1.7;max-width:540px;margin:0 auto 48px;
+}
+.hero-actions{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;}
+.btn-cta{
+  padding:16px 40px;border-radius:12px;border:none;
+  background:var(--dark);color:#fff;
+  font-size:16px;font-weight:600;cursor:pointer;
+  text-decoration:none;transition:all 0.25s;
+  font-family:'DM Sans',sans-serif;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:0 4px 24px rgba(45,36,32,0.18);
+}
+.btn-cta:hover{background:var(--accent);transform:translateY(-2px);box-shadow:0 8px 32px rgba(232,93,38,0.25);}
+.btn-cta-outline{
+  padding:16px 32px;border-radius:12px;
+  border:2px solid var(--border);background:transparent;
+  color:var(--mid);font-size:15px;font-weight:500;
+  cursor:pointer;text-decoration:none;
+  transition:all 0.2s;font-family:'DM Sans',sans-serif;
+}
+.btn-cta-outline:hover{border-color:var(--dark);color:var(--dark);}
+
+/* ── MINI MAZE PREVIEW ── */
+.maze-preview{
+  margin-top:72px;
+  position:relative;z-index:1;
+}
+.maze-preview-label{
+  text-align:center;font-size:12px;font-weight:500;
+  color:var(--brown);letter-spacing:1px;text-transform:uppercase;
+  margin-bottom:16px;
+}
+.mini-maze{
+  display:inline-grid;
+  gap:2px;padding:16px;
+  background:white;border-radius:16px;
+  border:1px solid var(--border);
+  box-shadow:0 8px 40px rgba(45,36,32,0.1);
+}
+.mc{width:18px;height:18px;border-radius:3px;transition:background 0.3s;}
+.mc.wall{background:#e8ddd0;}
+.mc.open{background:#f9f6f1;}
+.mc.s{background:#2d7a4f;}
+.mc.e{background:#e85d26;}
+.mc.path{background:#ffd700;animation:pulse 1s ease-in-out infinite alternate;}
+.mc.vis{background:#bce0cc;}
+@keyframes pulse{from{opacity:0.7;}to{opacity:1;}}
+
+/* ── FEATURES ── */
+.features{
+  padding:80px 48px;
+  background:var(--warm);
+  border-top:1px solid var(--border);
+}
+.features-inner{max-width:1000px;margin:0 auto;}
+.section-label{
+  font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--brown);margin-bottom:12px;
+}
+.section-title{
+  font-family:'Playfair Display',serif;
+  font-size:36px;font-weight:700;color:var(--dark);
+  margin-bottom:48px;
+}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+.feature-card{
+  padding:28px 24px;border-radius:16px;
+  background:white;border:1px solid var(--border);
+  transition:transform 0.2s,box-shadow 0.2s;
+}
+.feature-card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(45,36,32,0.1);}
+.feature-icon{
+  width:44px;height:44px;border-radius:10px;
+  display:grid;place-items:center;font-size:20px;
+  margin-bottom:16px;
+}
+.feature-title{font-size:16px;font-weight:600;color:var(--dark);margin-bottom:8px;}
+.feature-desc{font-size:14px;color:var(--mid);line-height:1.6;}
+
+/* ── ALGO EXPLAINER ── */
+.explainer{padding:80px 48px;max-width:1000px;margin:0 auto;}
+.algo-cards{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:48px;}
+.algo-card{
+  padding:32px;border-radius:20px;border:2px solid var(--border);
+  position:relative;overflow:hidden;
+}
+.algo-card.dfs{background:linear-gradient(135deg,#f0ebf8,white);border-color:#c4b0e0;}
+.algo-card.bfs{background:linear-gradient(135deg,#e8f4fd,white);border-color:#a8d0f0;}
+.algo-card-tag{
+  display:inline-block;padding:4px 12px;border-radius:20px;
+  font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  margin-bottom:16px;
+}
+.algo-card.dfs .algo-card-tag{background:#c4b0e0;color:#4a2090;}
+.algo-card.bfs .algo-card-tag{background:#a8d0f0;color:#1a4a90;}
+.algo-card-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;margin-bottom:12px;color:var(--dark);}
+.algo-card-desc{font-size:14px;color:var(--mid);line-height:1.7;}
+.algo-card-stats{
+  margin-top:20px;display:flex;gap:16px;
+}
+.algo-stat{text-align:center;padding:12px 16px;background:white;border-radius:10px;border:1px solid var(--border);flex:1;}
+.algo-stat-val{font-size:20px;font-weight:700;color:var(--dark);}
+.algo-stat-lbl{font-size:11px;color:var(--mid);margin-top:2px;}
+
+/* ── FOOTER ── */
+footer{
+  padding:32px 48px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--cream);
+}
+footer p{font-size:13px;color:var(--brown);}
+
+/* ── MODAL ── */
+.modal-overlay{
+  position:fixed;inset:0;z-index:500;
+  background:rgba(45,36,32,0.4);backdrop-filter:blur(4px);
+  display:none;place-items:center;
+}
+.modal-overlay.open{display:grid;}
+.modal{
+  background:white;border-radius:20px;
+  padding:40px;width:100%;max-width:440px;
+  box-shadow:0 24px 80px rgba(45,36,32,0.2);
+  animation:slideUp 0.3s ease;
+}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--dark);margin-bottom:6px;}
+.modal-sub{font-size:14px;color:var(--mid);margin-bottom:28px;}
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;font-size:13px;font-weight:500;color:var(--mid);margin-bottom:6px;}
+.form-group input{
+  width:100%;padding:11px 14px;border-radius:10px;
+  border:1.5px solid var(--border);background:var(--cream);
+  font-size:14px;color:var(--dark);outline:none;
+  transition:border-color 0.2s;font-family:'DM Sans',sans-serif;
+}
+.form-group input:focus{border-color:var(--dark);}
+.form-error{font-size:12px;color:var(--accent);margin-top:4px;display:none;}
+.form-error.show{display:block;}
+.btn-full{
+  width:100%;padding:13px;border-radius:10px;border:none;
+  background:var(--dark);color:white;font-size:15px;font-weight:600;
+  cursor:pointer;font-family:'DM Sans',sans-serif;transition:background 0.2s;margin-top:8px;
+}
+.btn-full:hover{background:var(--accent);}
+.modal-switch{text-align:center;margin-top:16px;font-size:13px;color:var(--mid);}
+.modal-switch a{color:var(--dark);font-weight:600;cursor:pointer;text-decoration:none;}
+.modal-close{
+  position:absolute;top:16px;right:20px;
+  background:none;border:none;font-size:22px;cursor:pointer;color:var(--mid);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="/" class="logo">
+    <div class="logo-mark">🧩</div>
+    <span class="logo-name">MazeSolver</span>
+  </a>
+  <div class="header-actions" id="header-actions">
+    {% if user %}
+      <div class="user-chip">👤 {{ user.username }}</div>
+      <a href="/solver" class="btn-solid">Open Solver</a>
+      <button class="btn-ghost" id="btn-logout-header">Sign Out</button>
+    {% else %}
+      <button class="btn-ghost" id="btn-login-header">Sign In</button>
+      <button class="btn-solid" id="btn-register-header">Create Account</button>
+    {% endif %}
+  </div>
+</header>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-deco" id="hero-deco"></div>
+
+  <div class="hero-content">
+    <div class="hero-tag">🎓 ITP 11 — Programming Languages</div>
+    <h1 class="hero-title">Find the path.<br><em>Compare the way.</em></h1>
+    <p class="hero-sub">
+      Draw a maze, then watch two different solving strategies race to find the exit.
+      See exactly how each one thinks — step by step.
+    </p>
+    <div class="hero-actions">
+      <a href="/solver" class="btn-cta">
+        Start Solving ↗
+      </a>
+      {% if not user %}
+      <button class="btn-cta-outline" id="btn-register-hero">Create Free Account</button>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="maze-preview">
+    <p class="maze-preview-label">Live preview</p>
+    <div class="mini-maze" id="mini-maze"></div>
+  </div>
+</section>
+
+<!-- ── FEATURES ── -->
+<section class="features">
+  <div class="features-inner">
+    <p class="section-label">What you can do</p>
+    <h2 class="section-title">Everything you need to explore<br>maze solving</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#e8f5ee;">🎨</div>
+        <div class="feature-title">Draw Your Own Maze</div>
+        <div class="feature-desc">Click to place walls, set a start and finish, or let the system generate a random maze instantly.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#fdf0ea;">▶️</div>
+        <div class="feature-title">Watch It Solve Live</div>
+        <div class="feature-desc">See every step the solver takes — which paths it tries, where it gets stuck, and how it finds the exit.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#e8f0fb;">📊</div>
+        <div class="feature-title">Compare Two Strategies</div>
+        <div class="feature-desc">Run both solvers side by side and compare how many steps they took, how long it took, and which found the shorter path.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#fef9e7;">💾</div>
+        <div class="feature-title">Save Your Results</div>
+        <div class="feature-desc">Create a free account to save your mazes and results. Come back anytime to replay or compare past runs.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#fdeaea;">🔍</div>
+        <div class="feature-title">Step-by-Step Mode</div>
+        <div class="feature-desc">Pause and advance one move at a time. Perfect for studying exactly how each strategy makes its decisions.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#f0ebf8;">🌗</div>
+        <div class="feature-title">Light & Dark Mode</div>
+        <div class="feature-desc">Switch between a clean light theme and a focused dark theme — whatever feels right for you.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── ALGO EXPLAINER ── -->
+<section class="explainer">
+  <p class="section-label">The two strategies</p>
+  <h2 class="section-title">How each solver thinks</h2>
+  <div class="algo-cards">
+    <div class="algo-card dfs">
+      <span class="algo-card-tag">Strategy 1</span>
+      <h3 class="algo-card-title">Deep Explorer</h3>
+      <p class="algo-card-desc">
+        This strategy commits fully to one direction, going as deep as it can before backing up and trying another path.
+        Like someone who always follows a hallway to its end before turning around.
+        Fast, but the path it finds might not be the shortest.
+      </p>
+      <div class="algo-card-stats">
+        <div class="algo-stat"><div class="algo-stat-val">⚡</div><div class="algo-stat-lbl">Often faster</div></div>
+        <div class="algo-stat"><div class="algo-stat-val">〰️</div><div class="algo-stat-lbl">Path varies</div></div>
+      </div>
+    </div>
+    <div class="algo-card bfs">
+      <span class="algo-card-tag">Strategy 2</span>
+      <h3 class="algo-card-title">Careful Spreader</h3>
+      <p class="algo-card-desc">
+        This strategy checks every nearby option before going further — spreading outward in waves from the start.
+        Like someone who checks all doors on the first floor before going to the second.
+        Guaranteed to find the shortest possible path.
+      </p>
+      <div class="algo-card-stats">
+        <div class="algo-stat"><div class="algo-stat-val">🏆</div><div class="algo-stat-lbl">Shortest path</div></div>
+        <div class="algo-stat"><div class="algo-stat-val">🔍</div><div class="algo-stat-lbl">Checks more</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>MazeSolver · ITP 11 · Baliuag University · 2026</p>
+  <p>Prado, Christine Joyce G. &nbsp;|&nbsp; Sebastian, Ralph Jieian I.</p>
+</footer>
+
+<!-- ── AUTH MODALS ── -->
+<div class="modal-overlay" id="modal-login">
+  <div class="modal" style="position:relative">
+    <button class="modal-close" onclick="closeModal('modal-login')">×</button>
+    <div class="modal-title">Welcome back</div>
+    <div class="modal-sub">Sign in to access your saved mazes.</div>
+    <div class="form-group">
+      <label>Username or Email</label>
+      <input type="text" id="login-user" placeholder="Enter your username"/>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-pass" placeholder="Enter your password"/>
+    </div>
+    <div class="form-error" id="login-error"></div>
+    <button class="btn-full" id="btn-do-login">Sign In</button>
+    <div class="modal-switch">No account? <a onclick="switchModal('modal-login','modal-register')">Create one free →</a></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-register">
+  <div class="modal" style="position:relative">
+    <button class="modal-close" onclick="closeModal('modal-register')">×</button>
+    <div class="modal-title">Create account</div>
+    <div class="modal-sub">Free forever. Save your mazes and results.</div>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="reg-user" placeholder="Choose a username"/>
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="reg-email" placeholder="your@email.com"/>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="reg-pass" placeholder="At least 6 characters"/>
+    </div>
+    <div class="form-error" id="reg-error"></div>
+    <button class="btn-full" id="btn-do-register">Create Account</button>
+    <div class="modal-switch">Already have one? <a onclick="switchModal('modal-register','modal-login')">Sign in →</a></div>
+  </div>
+</div>
+
+<script>
+// Mini maze animation
+const mazePattern = [
+  [1,1,1,1,1,1,1,1,1,1,1],
+  [1,0,0,0,1,0,0,0,0,0,1],
+  [1,0,1,0,1,0,1,1,1,0,1],
+  [1,0,1,0,0,0,1,0,0,0,1],
+  [1,0,1,1,1,1,1,0,1,1,1],
+  [1,0,0,0,0,0,0,0,1,0,1],
+  [1,1,1,0,1,1,1,1,1,0,1],
+  [1,0,0,0,1,0,0,0,0,0,1],
+  [1,0,1,1,1,0,1,1,1,0,1],
+  [1,0,0,0,0,0,1,0,0,0,1],
+  [1,1,1,1,1,1,1,1,1,1,1],
+];
+const animPath = [[1,1],[1,2],[1,3],[2,3],[3,3],[3,2],[4,2],[5,2],[5,3],[5,4],[5,5],[5,6],[5,7],[6,7],[7,7],[7,8],[7,9],[8,9],[9,9]];
+
+const miniMaze = document.getElementById('mini-maze');
+miniMaze.style.gridTemplateColumns = `repeat(11,18px)`;
+const cells = [];
+mazePattern.forEach((row,r) => row.forEach((v,c) => {
+  const d = document.createElement('div');
+  d.className = 'mc ' + (v===1?'wall':'open');
+  if(r===1&&c===1) d.className='mc s';
+  if(r===9&&c===9) d.className='mc e';
+  miniMaze.appendChild(d); cells.push({el:d,r,c});
+}));
+
+let pi=0;
+function animatePath(){
+  if(pi>0&&pi<=animPath.length){
+    const [pr,pc]=animPath[pi-1];
+    const cell=cells.find(x=>x.r===pr&&x.c===pc);
+    if(cell&&cell.el.className==='mc open') cell.el.className='mc vis';
+  }
+  if(pi<animPath.length){
+    const [r,c]=animPath[pi];
+    const cell=cells.find(x=>x.r===r&&x.c===c);
+    if(cell&&cell.el.className==='mc open'||cell?.el.className==='mc vis') cell.el.className='mc path';
+    pi++;
+    setTimeout(animatePath,180);
+  } else {
+    setTimeout(()=>{
+      cells.forEach(x=>{ if(x.el.className==='mc vis'||x.el.className==='mc path') x.el.className='mc open'; });
+      pi=0; setTimeout(animatePath,800);
+    },1500);
+  }
+}
+setTimeout(animatePath,1000);
+
+// Modals
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function switchModal(from,to){ closeModal(from); openModal(to); }
+
+document.getElementById('modal-login').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeModal('modal-login'); });
+document.getElementById('modal-register').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeModal('modal-register'); });
+
+document.getElementById('btn-login-header')?.addEventListener('click',()=>openModal('modal-login'));
+document.getElementById('btn-register-header')?.addEventListener('click',()=>openModal('modal-register'));
+document.getElementById('btn-register-hero')?.addEventListener('click',()=>openModal('modal-register'));
+
+document.getElementById('btn-do-login')?.addEventListener('click', async()=>{
+  const u=document.getElementById('login-user').value;
+  const p=document.getElementById('login-pass').value;
+  const err=document.getElementById('login-error');
+  err.classList.remove('show');
+  const res=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+  const data=await res.json();
+  if(data.error){ err.textContent=data.error; err.classList.add('show'); }
+  else location.href='/solver';
+});
+
+document.getElementById('btn-do-register')?.addEventListener('click', async()=>{
+  const u=document.getElementById('reg-user').value;
+  const e=document.getElementById('reg-email').value;
+  const p=document.getElementById('reg-pass').value;
+  const err=document.getElementById('reg-error');
+  err.classList.remove('show');
+  const res=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,email:e,password:p})});
+  const data=await res.json();
+  if(data.error){ err.textContent=data.error; err.classList.add('show'); }
+  else location.reload();
+});
+
+document.getElementById('btn-logout-header')?.addEventListener('click', async()=>{
+  await fetch('/api/logout',{method:'POST'});
+  location.reload();
+});
+</script>
+</body>
+</html>

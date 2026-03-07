@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>My Results — MazeSolver</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+[data-theme="light"]{
+  --bg:#faf7f2;--bg2:#f5efe6;--bg3:#fff;--panel:#fff;--panel2:#f0ebe3;
+  --border:#ddd5cc;--text:#2d2420;--mid:#5a4a42;--muted:#9a8a82;
+  --accent:#e85d26;--accent-bg:#fdf0ea;
+  --green:#2d7a4f;--red:#c0392b;--blue:#2563a8;
+  --dfs:#7c3aed;--dfs-bg:#f3f0ff;--bfs:#0369a1;--bfs-bg:#e8f4fd;
+  --yellow:#d97706;
+  --shadow:0 2px 16px rgba(45,36,32,0.08);
+  --shadow-lg:0 8px 40px rgba(45,36,32,0.14);
+}
+[data-theme="dark"]{
+  --bg:#0f1117;--bg2:#161b27;--bg3:#1e2535;--panel:#1e2535;--panel2:#252d40;
+  --border:#2a3550;--text:#e8eaf6;--mid:#8a9ac0;--muted:#4a5a7a;
+  --accent:#f97316;--accent-bg:#2d1a0a;
+  --green:#22c55e;--red:#ef4444;--blue:#60a5fa;
+  --dfs:#a78bfa;--dfs-bg:#1e1530;--bfs:#38bdf8;--bfs-bg:#0a1e30;
+  --yellow:#fbbf24;
+  --shadow:0 2px 16px rgba(0,0,0,0.3);
+  --shadow-lg:0 8px 40px rgba(0,0,0,0.4);
+}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;transition:background 0.3s,color 0.3s;}
+
+header{display:flex;align-items:center;justify-content:space-between;padding:12px 32px;background:var(--panel);border-bottom:1px solid var(--border);box-shadow:var(--shadow);position:sticky;top:0;z-index:50;}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);}
+.logo-mark{width:32px;height:32px;border-radius:7px;background:var(--text);display:grid;place-items:center;font-size:14px;}
+.logo-name{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;}
+.hr{display:flex;align-items:center;gap:8px;}
+.hbtn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;border:1px solid var(--border);background:transparent;color:var(--mid);cursor:pointer;text-decoration:none;transition:all 0.2s;font-family:'DM Sans',sans-serif;}
+.hbtn:hover{border-color:var(--text);color:var(--text);}
+.hbtn.active{background:var(--text);color:var(--bg);}
+.theme-toggle{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);cursor:pointer;font-size:14px;display:grid;place-items:center;}
+.user-pill{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;background:var(--bg2);border:1px solid var(--border);font-size:12px;color:var(--mid);}
+
+.page{max-width:1100px;margin:0 auto;padding:40px 24px;}
+.pg-head{margin-bottom:32px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.pg-title{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;}
+.pg-sub{font-size:14px;color:var(--mid);margin-top:6px;}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px;}
+.scard{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 16px;box-shadow:var(--shadow);}
+.scard-lbl{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.scard-val{font-size:28px;font-weight:700;font-family:'DM Mono',monospace;color:var(--accent);}
+.scard-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+
+.filters{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
+.fbtn{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--mid);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:'DM Sans',sans-serif;}
+.fbtn:hover{border-color:var(--accent);color:var(--accent);}
+.fbtn.active{background:var(--accent);border-color:var(--accent);color:white;}
+
+.grid-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;}
+.rec-card{
+  background:var(--panel);border:1.5px solid var(--border);border-radius:16px;
+  overflow:hidden;cursor:pointer;transition:all 0.2s;box-shadow:var(--shadow);
+}
+.rec-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.rec-head{padding:16px 18px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.rec-name{font-size:16px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.rec-meta{font-size:12px;color:var(--muted);}
+.rec-actions{display:flex;gap:6px;flex-shrink:0;}
+.act-btn{width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:13px;display:grid;place-items:center;transition:all 0.15s;color:var(--mid);}
+.act-btn:hover.edit{border-color:var(--blue);color:var(--blue);}
+.act-btn:hover.del{border-color:var(--red);color:var(--red);}
+.rec-badges{padding:0 18px 12px;display:flex;gap:6px;flex-wrap:wrap;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:0.3px;}
+.badge.dfs{background:var(--dfs-bg);color:var(--dfs);border:1px solid var(--dfs);}
+.badge.bfs{background:var(--bfs-bg);color:var(--bfs);border:1px solid var(--bfs);}
+.badge.solved{background:var(--green);color:white;}
+.badge.unsolved{background:var(--red);color:white;}
+.rec-mini-maze{padding:0 18px 16px;display:flex;justify-content:center;}
+.mini-grid{display:inline-grid;gap:1px;background:var(--border);border-radius:4px;overflow:hidden;}
+.mc{background:var(--bg3);}
+.mc.w{background:var(--panel2);}
+.mc.s{background:var(--green);}
+.mc.e{background:var(--red);}
+.mc.pd{background:var(--dfs);opacity:0.7;}
+.mc.pb{background:var(--bfs);opacity:0.7;}
+.rec-metrics{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--border);}
+.metric-half{padding:12px 16px;border-right:1px solid var(--border);}
+.metric-half:last-child{border-right:none;}
+.metric-algo{font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px;}
+.metric-algo.dfs{color:var(--dfs);}
+.metric-algo.bfs{color:var(--bfs);}
+.metric-item{font-size:11px;color:var(--muted);margin-bottom:3px;}
+.metric-item span{color:var(--text);font-family:'DM Mono',monospace;font-weight:500;}
+
+/* ── DETAIL MODAL ── */
+.overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);display:none;place-items:center;padding:20px;}
+.overlay.open{display:grid;}
+.detail-modal{
+  background:var(--panel);border-radius:20px;
+  width:100%;max-width:860px;max-height:90vh;overflow-y:auto;
+  box-shadow:var(--shadow-lg);animation:popIn 0.25s ease;
+}
+@keyframes popIn{from{transform:scale(0.96);opacity:0;}to{transform:scale(1);opacity:1;}}
+.dm-head{padding:24px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.dm-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;}
+.dm-meta{font-size:13px;color:var(--muted);margin-top:4px;}
+.dm-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);}
+.dm-body{padding:24px 28px;display:grid;grid-template-columns:auto 1fr;gap:28px;}
+.dm-maze{display:flex;flex-direction:column;align-items:center;gap:12px;}
+.dm-maze-title{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.dm-right{display:flex;flex-direction:column;gap:20px;}
+.dm-section-title{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.dm-algo-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.dm-algo-card{border-radius:12px;border:1.5px solid var(--border);overflow:hidden;}
+.dm-algo-card.dfs{border-top:3px solid var(--dfs);}
+.dm-algo-card.bfs{border-top:3px solid var(--bfs);}
+.dm-algo-head{padding:10px 14px;background:var(--bg2);font-size:12px;font-weight:700;letter-spacing:0.5px;}
+.dm-algo-head.dfs{color:var(--dfs);}
+.dm-algo-head.bfs{color:var(--bfs);}
+.dm-algo-body{padding:14px;}
+.dm-stat-row{display:flex;justify-content:space-between;margin-bottom:8px;}
+.dm-stat-lbl{font-size:12px;color:var(--muted);}
+.dm-stat-val{font-size:13px;font-weight:600;font-family:'DM Mono',monospace;}
+
+/* Confirm / edit dialogs */
+.dialog-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);display:none;place-items:center;}
+.dialog-overlay.open{display:grid;}
+.dialog{background:var(--panel);border-radius:16px;padding:32px;max-width:380px;width:90%;box-shadow:var(--shadow-lg);animation:popIn 0.2s ease;}
+.d-icon{font-size:36px;margin-bottom:12px;}
+.d-title{font-size:18px;font-weight:700;margin-bottom:8px;}
+.d-msg{font-size:14px;color:var(--mid);line-height:1.6;margin-bottom:24px;}
+.d-btns{display:flex;gap:10px;justify-content:flex-end;}
+.d-cancel{padding:8px 18px;border-radius:8px;border:1.5px solid var(--border);background:transparent;color:var(--mid);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.d-ok{padding:8px 18px;border-radius:8px;border:none;background:var(--accent);color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.d-input{width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg2);color:var(--text);font-size:14px;outline:none;font-family:'DM Sans',sans-serif;margin-bottom:16px;}
+.d-input:focus{border-color:var(--accent);}
+
+.empty-state{text-align:center;padding:80px 24px;color:var(--muted);}
+.empty-icon{font-size:48px;margin-bottom:16px;}
+.empty-msg{font-size:15px;}
+.empty-msg a{color:var(--accent);text-decoration:none;font-weight:600;}
+
+#loading{text-align:center;padding:60px;color:var(--muted);font-size:14px;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* toast */
+#toast{position:fixed;bottom:24px;right:24px;z-index:9999;padding:11px 20px;border-radius:10px;font-size:13px;font-weight:500;transform:translateY(60px);opacity:0;pointer-events:none;transition:all 0.3s;box-shadow:var(--shadow-lg);}
+#toast.show{transform:translateY(0);opacity:1;}
+#toast.success{background:var(--green);color:white;}
+#toast.error{background:var(--red);color:white;}
+#toast.info{background:var(--accent);color:white;}
+</style>
+</head>
+<body>
+<header>
+  <a href="/" class="logo">
+    <div class="logo-mark">🧩</div>
+    <span class="logo-name">MazeSolver</span>
+  </a>
+  <div class="hr">
+    <a href="/" class="hbtn">← Home</a>
+    <a href="/solver" class="hbtn">Solver</a>
+    <a href="/history" class="hbtn active">My Results</a>
+    <a href="/settings" class="hbtn">Settings</a>
+    <button class="theme-toggle" id="theme-toggle">☀️</button>
+    {% if user %}
+      <div class="user-pill">👤 {{ user.username }}</div>
+      <button class="hbtn" id="btn-logout">Sign Out</button>
+    {% else %}
+      <div class="user-pill" style="background:var(--accent-bg);color:var(--accent)">👤 Guest</div>
+    {% endif %}
+  </div>
+</header>
+
+<div class="page">
+  <div class="pg-head">
+    <div>
+      <h1 class="pg-title">My Results</h1>
+      <p class="pg-sub">
+        {% if user %}All your saved maze runs, {{ user.username }}.{% else %}Guest results. <a href="/solver" style="color:var(--accent)">Sign in</a> to save across sessions.{% endif %}
+      </p>
+    </div>
+    <a href="/solver" class="hbtn active" style="padding:10px 20px;font-size:13px">+ New Maze</a>
+  </div>
+
+  <div class="stats" id="stats-row">
+    <div class="scard"><div class="scard-lbl">Total Saved</div><div class="scard-val" id="s-total">—</div></div>
+    <div class="scard"><div class="scard-lbl">Deep Explorer avg. spots</div><div class="scard-val" id="s-dfs" style="color:var(--dfs)">—</div></div>
+    <div class="scard"><div class="scard-lbl">Careful Spreader avg. spots</div><div class="scard-val" id="s-bfs" style="color:var(--bfs)">—</div></div>
+    <div class="scard"><div class="scard-lbl">Spreader shorter path</div><div class="scard-val" id="s-wins" style="color:var(--yellow)">—</div><div class="scard-sub">out of compared runs</div></div>
+  </div>
+
+  <div class="filters">
+    <span style="font-size:12px;color:var(--muted);font-weight:600">Filter:</span>
+    <button class="fbtn active" data-f="all">All</button>
+    <button class="fbtn" data-f="both">Both Solvers</button>
+    <button class="fbtn" data-f="dfs">Deep Explorer Only</button>
+    <button class="fbtn" data-f="bfs">Careful Spreader Only</button>
+    <button class="fbtn" data-f="solved">Solved</button>
+    <button class="fbtn" data-f="unsolved">No Path Found</button>
+  </div>
+
+  <div id="loading">Loading your results…</div>
+  <div class="grid-list" id="grid-list" style="display:none"></div>
+  <div class="empty-state" id="empty-state" style="display:none">
+    <div class="empty-icon">📭</div>
+    <div class="empty-msg">No results here yet. <a href="/solver">Solve a maze</a> and save it!</div>
+  </div>
+</div>
+
+<!-- Detail modal -->
+<div class="overlay" id="detail-overlay">
+  <div class="detail-modal" id="detail-modal">
+    <div class="dm-head">
+      <div>
+        <div class="dm-title" id="dm-title">Maze Name</div>
+        <div class="dm-meta" id="dm-meta"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button id="btn-edit-maze" style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);background:transparent;color:var(--mid);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;" title="Edit this maze in the solver">✏️ Edit Maze</button>
+        <button class="dm-close" onclick="closeDetail()">×</button>
+      </div>
+    </div>
+    <div class="dm-body">
+      <div class="dm-maze">
+        <div class="dm-maze-title">Maze Layout</div>
+        <div id="dm-maze-grid"></div>
+      </div>
+      <div class="dm-right">
+        <div>
+          <div class="dm-section-title">Solver Results</div>
+          <div class="dm-algo-row" id="dm-algo-row"></div>
+        </div>
+        <div id="dm-compare-section"></div>
+        <div id="dm-explanation" style="display:none;margin-top:16px;padding:12px 14px;border-radius:10px;background:var(--bg2);border:1px solid var(--border);font-size:13px;color:var(--mid);line-height:1.7;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Why these results?</div>
+          <div id="dm-explanation-text"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm dialog -->
+<div class="dialog-overlay" id="confirm-overlay">
+  <div class="dialog">
+    <div class="d-icon" id="ci">⚠️</div>
+    <div class="d-title" id="ct">Are you sure?</div>
+    <div class="d-msg" id="cm"></div>
+    <div class="d-btns">
+      <button class="d-cancel" id="c-cancel">Cancel</button>
+      <button class="d-ok" id="c-ok">Yes, go ahead</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit dialog -->
+<div class="dialog-overlay" id="edit-overlay">
+  <div class="dialog">
+    <div class="d-icon">✏️</div>
+    <div class="d-title">Rename Maze</div>
+    <div class="d-msg">Enter a new name for this maze run.</div>
+    <input type="text" class="d-input" id="edit-input" placeholder="Maze name…"/>
+    <div class="d-btns">
+      <button class="d-cancel" onclick="closeEdit()">Cancel</button>
+      <button class="d-ok" id="edit-ok">Save Name</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// theme
+const html=document.documentElement;
+const saved=localStorage.getItem('theme')||'light';
+html.setAttribute('data-theme',saved);
+function updateIcon(){ const b=document.getElementById('theme-toggle'); if(b) b.textContent=html.getAttribute('data-theme')==='dark'?'☀️':'🌙'; }
+function formatHistoryTime(ms){
+  if(ms===null||ms===undefined)return'—';
+  return ms.toFixed(2)+' ms';
+}
+updateIcon();
+document.getElementById('theme-toggle')?.addEventListener('click',()=>{
+  const n=html.getAttribute('data-theme')==='dark'?'light':'dark';
+  html.setAttribute('data-theme',n); localStorage.setItem('theme',n); updateIcon();
+});
+
+document.getElementById('btn-logout')?.addEventListener('click',async()=>{
+  const ok=await showConfirm('👋','Sign out?','You will be signed out of your account.','Sign Out');
+  if(ok){ await fetch('/api/logout',{method:'POST'}); location.href='/'; }
+});
+
+let allRecords=[];
+let currentMazeId=null;
+
+function toast(msg,type='info'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className=`show ${type}`;
+  setTimeout(()=>t.className=type,3000);
+}
+
+function showConfirm(icon,title,msg,okLabel='Yes'){
+  return new Promise(res=>{
+    document.getElementById('ci').textContent=icon;
+    document.getElementById('ct').textContent=title;
+    document.getElementById('cm').textContent=msg;
+    document.getElementById('c-ok').textContent=okLabel;
+    document.getElementById('confirm-overlay').classList.add('open');
+    const ok=document.getElementById('c-ok');
+    const cancel=document.getElementById('c-cancel');
+    function cleanup(r){ document.getElementById('confirm-overlay').classList.remove('open'); ok.onclick=null; cancel.onclick=null; res(r); }
+    ok.onclick=()=>cleanup(true); cancel.onclick=()=>cleanup(false);
+  });
+}
+
+function closeEdit(){ document.getElementById('edit-overlay').classList.remove('open'); }
+
+async function loadHistory(){
+  try{
+    const res=await fetch('/api/history');
+    const d=await res.json();
+    allRecords=d.records||[];
+    renderStats(allRecords);
+    renderCards(allRecords);
+  }catch(e){
+    document.getElementById('loading').innerHTML='<span style="color:var(--red)">Could not connect to the server. Make sure Flask is running.</span>';
+  }
+}
+
+function renderStats(records){
+  document.getElementById('s-total').textContent=records.length;
+  const dr=records.filter(r=>r.results.DFS);
+  const br=records.filter(r=>r.results.BFS);
+  const both=records.filter(r=>r.results.DFS&&r.results.BFS);
+  if(dr.length) document.getElementById('s-dfs').textContent=Math.round(dr.reduce((s,r)=>s+(r.results.DFS.cells_visited||0),0)/dr.length);
+  if(br.length) document.getElementById('s-bfs').textContent=Math.round(br.reduce((s,r)=>s+(r.results.BFS.cells_visited||0),0)/br.length);
+  if(both.length){
+    const wins=both.filter(r=>r.results.DFS.solved&&r.results.BFS.solved&&r.results.BFS.path_length<=r.results.DFS.path_length).length;
+    document.getElementById('s-wins').textContent=`${wins}/${both.length}`;
+  }
+}
+
+function buildMiniMaze(gridData,startRow,startCol,endRow,endCol,dfsPath=[],bfsPath=[],size=6){
+  const rows=gridData.length, cols=gridData[0].length;
+  const cs=Math.max(3,Math.min(size,Math.floor(140/Math.max(rows,cols))));
+  const dfsSet=new Set(dfsPath.map(p=>p[0]+','+p[1]));
+  const bfsSet=new Set(bfsPath.map(p=>p[0]+','+p[1]));
+  const grid=document.createElement('div');
+  grid.className='mini-grid';
+  grid.style.gridTemplateColumns=`repeat(${cols},${cs}px)`;
+  gridData.forEach((row,r)=>row.forEach((v,c)=>{
+    const d=document.createElement('div');
+    d.className='mc';
+    d.style.width=cs+'px'; d.style.height=cs+'px';
+    if(r===startRow&&c===startCol) d.classList.add('s');
+    else if(r===endRow&&c===endCol) d.classList.add('e');
+    else if(v===1) d.classList.add('w');
+    else if(bfsSet.has(r+','+c)) d.classList.add('pb');
+    else if(dfsSet.has(r+','+c)) d.classList.add('pd');
+    grid.appendChild(d);
+  }));
+  return grid;
+}
+
+function renderCards(records){
+  document.getElementById('loading').style.display='none';
+  const list=document.getElementById('grid-list');
+  const empty=document.getElementById('empty-state');
+  if(!records.length){ list.style.display='none'; empty.style.display='block'; return; }
+  list.style.display='grid'; empty.style.display='none';
+
+  list.innerHTML='';
+  records.forEach(r=>{
+    const d=r.results.DFS, b=r.results.BFS;
+    const card=document.createElement('div');
+    card.className='rec-card';
+
+    const algoBadges=[
+      d?`<span class="badge dfs">Deep Explorer</span>`:'',
+      b?`<span class="badge bfs">Careful Spreader</span>`:'',
+      (d?.solved||b?.solved)?'<span class="badge solved">✓ Solved</span>':(!d&&!b?'':'<span class="badge unsolved">No Path</span>')
+    ].filter(Boolean).join('');
+
+    const date=new Date(r.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'});
+
+    card.innerHTML=`
+      <div class="rec-head">
+        <div>
+          <div class="rec-name">${r.maze_name}</div>
+          <div class="rec-meta">${r.grid_rows}×${r.grid_cols} grid &nbsp;·&nbsp; ${date}</div>
+        </div>
+        <div class="rec-actions">
+          <button class="act-btn edit" title="Rename" data-id="${r.maze_id}" data-name="${r.maze_name}">✏️</button>
+          <button class="act-btn del" title="Delete" data-id="${r.maze_id}">🗑</button>
+        </div>
+      </div>
+      <div class="rec-badges">${algoBadges}</div>
+      <div class="rec-mini-maze" id="mini-${r.maze_id}"></div>
+      <div class="rec-metrics">
+        ${d?`<div class="metric-half">
+          <div class="metric-algo dfs">Deep Explorer</div>
+          <div class="metric-item">Spots checked: <span>${d.cells_visited||'—'}</span></div>
+          <div class="metric-item">Path length: <span>${d.solved?d.path_length:'No path'}</span></div>
+          <div class="metric-item">Time: <span>${d.execution_time_ms||'—'} ms</span></div>
+        </div>`:'<div class="metric-half"><div class="metric-algo dfs">Deep Explorer</div><div class="metric-item" style="color:var(--muted)">Not run</div></div>'}
+        ${b?`<div class="metric-half">
+          <div class="metric-algo bfs">Careful Spreader</div>
+          <div class="metric-item">Spots checked: <span>${b.cells_visited||'—'}</span></div>
+          <div class="metric-item">Path length: <span>${b.solved?b.path_length:'No path'}</span></div>
+          <div class="metric-item">Time: <span>${b.execution_time_ms||'—'} ms</span></div>
+        </div>`:'<div class="metric-half"><div class="metric-algo bfs">Careful Spreader</div><div class="metric-item" style="color:var(--muted)">Not run</div></div>'}
+      </div>`;
+
+    list.appendChild(card);
+
+    // Fetch maze data for mini preview
+    fetch(`/api/maze/${r.maze_id}`).then(res=>res.json()).then(data=>{
+      if(!data.maze) return;
+      const m=data.maze;
+      const dPath=data.results.DFS?.path||[];
+      const bPath=data.results.BFS?.path||[];
+      const miniEl=document.getElementById(`mini-${r.maze_id}`);
+      if(miniEl) miniEl.appendChild(buildMiniMaze(m.grid_data,m.start_row,m.start_col,m.end_row,m.end_col,dPath,bPath));
+    }).catch(()=>{});
+
+    // Click to open detail
+    card.addEventListener('click',e=>{
+      if(e.target.closest('.act-btn')) return;
+      openDetail(r.maze_id);
+    });
+
+    // Edit button
+    card.querySelector('.act-btn.edit').addEventListener('click',async e=>{
+      e.stopPropagation();
+      const id=+e.currentTarget.dataset.id;
+      const name=e.currentTarget.dataset.name;
+      document.getElementById('edit-input').value=name;
+      document.getElementById('edit-overlay').classList.add('open');
+      document.getElementById('edit-ok').onclick=async()=>{
+        const newName=document.getElementById('edit-input').value.trim();
+        if(!newName){ toast('Name cannot be empty.','error'); return; }
+        const res=await fetch(`/api/maze/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:newName})});
+        const d=await res.json();
+        if(d.status==='updated'){ toast('Renamed successfully!','success'); closeEdit(); loadHistory(); }
+        else toast(d.error||'Could not rename.','error');
+      };
+    });
+
+    // Delete button
+    card.querySelector('.act-btn.del').addEventListener('click',async e=>{
+      e.stopPropagation();
+      const id=+e.currentTarget.dataset.id;
+      const name=r.maze_name;
+      const needsConfirm=localStorage.getItem('confirm-delete')!=='false';
+      let proceed=true;
+      if(needsConfirm) proceed=await showConfirm('🗑','Delete this result?',`"${name}" and all its solver data will be permanently deleted.`,'Yes, Delete');
+      if(proceed){
+        const res=await fetch(`/api/maze/${id}`,{method:'DELETE'});
+        const d=await res.json();
+        if(d.status==='deleted'){ toast('Deleted.','success'); loadHistory(); }
+        else toast(d.error||'Could not delete.','error');
+      }
+    });
+  });
+}
+
+async function openDetail(mazeId){
+  const overlay=document.getElementById('detail-overlay');
+  overlay.classList.add('open');
+  document.getElementById('dm-title').textContent='Loading…';
+  document.getElementById('dm-meta').textContent='';
+  document.getElementById('dm-maze-grid').innerHTML='';
+  document.getElementById('dm-algo-row').innerHTML='';
+  document.getElementById('dm-compare-section').innerHTML='';
+  document.getElementById('dm-explanation').style.display='none';
+
+  // Edit maze button wires to current maze id
+  document.getElementById('btn-edit-maze').onclick=()=>{
+    location.href='/solver?edit='+mazeId+'&from=history';
+  };
+
+  try{
+    const res=await fetch(`/api/maze/${mazeId}?t=${Date.now()}`);
+    const data=await res.json();
+    const m=data.maze; const results=data.results;
+
+    document.getElementById('dm-title').textContent=m.maze_name;
+    document.getElementById('dm-meta').textContent=`${m.grid_rows}×${m.grid_cols} grid · Saved ${new Date(m.created_at).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}`;
+
+    const dPath=results.DFS?.path||[];
+    const bPath=results.BFS?.path||[];
+    const bigMaze=buildMiniMaze(m.grid_data,m.start_row,m.start_col,m.end_row,m.end_col,dPath,bPath,10);
+    document.getElementById('dm-maze-grid').appendChild(bigMaze);
+
+    const row=document.getElementById('dm-algo-row');
+    const runAlgos=['DFS','BFS'].filter(a=>results[a]);
+    if(runAlgos.length===1) row.style.gridTemplateColumns='1fr';
+    runAlgos.forEach(algo=>{
+      const r=results[algo];
+      const name=algo==='DFS'?'Depth-First Search':'Breadth-First Search';
+      const color=algo==='DFS'?'var(--dfs)':'var(--bfs)';
+      const cls=algo.toLowerCase();
+      const visited=r.cells_visited??0;
+      row.innerHTML+=`
+        <div class="dm-algo-card ${cls}">
+          <div class="dm-algo-head ${cls}">${algo} — ${name}</div>
+          <div class="dm-algo-body">
+            <div class="dm-stat-row"><span class="dm-stat-lbl">Result</span><span class="dm-stat-val" style="color:${r.solved?'var(--green)':'var(--red)'}">${r.solved?'✓ Exit found':'✗ No path'}</span></div>
+            <div class="dm-stat-row"><span class="dm-stat-lbl">Spots checked</span><span class="dm-stat-val" style="color:${color}">${visited}</span></div>
+            <div class="dm-stat-row"><span class="dm-stat-lbl">Solution length</span><span class="dm-stat-val">${r.solved?r.path_length+' steps':'N/A'}</span></div>
+            <div class="dm-stat-row"><span class="dm-stat-lbl">Time taken</span><span class="dm-stat-val">${formatHistoryTime(r.execution_time_ms)}</span></div>
+          </div>
+        </div>`;
+    });
+
+    const d=results.DFS, b=results.BFS;
+    if(d&&b){
+      const vd=d.cells_visited??0, vb=b.cells_visited??0;
+      const cs=document.getElementById('dm-compare-section');
+      cs.innerHTML=`
+        <div class="dm-section-title" style="margin-top:16px;">Side-by-Side Comparison</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:10px;">
+          <thead><tr>
+            <th style="padding:7px 8px;text-align:left;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Measurement</th>
+            <th style="padding:7px 8px;text-align:left;color:var(--dfs);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border)">DFS</th>
+            <th style="padding:7px 8px;text-align:left;color:var(--bfs);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border)">BFS</th>
+          </tr></thead>
+          <tbody>
+            ${[
+              {lbl:'Spots checked',dv:vd,bv:vb,lower:true},
+              {lbl:'Solution length',dv:d.solved?d.path_length:'—',bv:b.solved?b.path_length:'—',lower:true},
+              {lbl:'Time taken',dv:formatHistoryTime(d.execution_time_ms),bv:formatHistoryTime(b.execution_time_ms),lower:false},
+              {lbl:'Found exit?',dv:d.solved?'Yes':'No',bv:b.solved?'Yes':'No',lower:false}
+            ].map(row=>{
+              let dc='',bc='';
+              if(row.lower&&typeof row.dv==='number'&&typeof row.bv==='number'){
+                if(row.dv<row.bv)dc='color:var(--green);font-weight:700'; else if(row.bv<row.dv)bc='color:var(--green);font-weight:700';
+              }
+              return`<tr>
+                <td style="padding:8px;border-bottom:1px solid var(--border);font-size:11px;color:var(--mid)">${row.lbl}</td>
+                <td style="padding:8px;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:11px;${dc}">${row.dv}</td>
+                <td style="padding:8px;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:11px;${bc}">${row.bv}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>`;
+    }
+
+    // Show saved explanation if available
+    if(m.explanation){
+      document.getElementById('dm-explanation').style.display='block';
+      document.getElementById('dm-explanation-text').textContent=m.explanation;
+    }
+
+  }catch(e){
+    document.getElementById('dm-title').textContent='Could not load';
+  }
+}
+
+function closeDetail(){ document.getElementById('detail-overlay').classList.remove('open'); }
+document.getElementById('detail-overlay').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeDetail(); });
+
+document.querySelectorAll('.fbtn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const f=btn.dataset.f;
+    let filtered=allRecords;
+    if(f==='both') filtered=allRecords.filter(r=>r.results.DFS&&r.results.BFS);
+    if(f==='dfs')  filtered=allRecords.filter(r=>r.results.DFS&&!r.results.BFS);
+    if(f==='bfs')  filtered=allRecords.filter(r=>r.results.BFS&&!r.results.DFS);
+    if(f==='solved') filtered=allRecords.filter(r=>r.results.DFS?.solved||r.results.BFS?.solved);
+    if(f==='unsolved') filtered=allRecords.filter(r=>(r.results.DFS&&!r.results.DFS.solved)||(r.results.BFS&&!r.results.BFS.solved));
+    renderCards(filtered);
+  });
+});
+
+loadHistory();
+</script>
+</body>
+</html>
