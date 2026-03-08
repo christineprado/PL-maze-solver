@@ -315,11 +315,11 @@ input[type=text]::placeholder{color:var(--muted);}
     <button class="mclose" onclick="closeModal('modal-register')">×</button>
     <div class="modal-title">Create account</div>
     <div class="modal-sub">Free. Save unlimited mazes and results.</div>
-    <div class="fg"><label>Username</label><input type="text" id="r-user" placeholder="Letters, numbers, underscores"/></div>
-    <div class="fg"><label>Email</label><input type="email" id="r-email" placeholder="yourname@gmail.com"/></div>
+    <div class="fg"><label>Username</label><input type="text" id="r-user" placeholder="Letters, numbers, underscores" autocomplete="username"/>
+    <div class="fg"><label>Email</label><input type="email" id="r-email" placeholder="yourname@gmail.com" autocomplete="email"/>
     <div class="fg">
       <label>Password</label>
-      <input type="password" id="r-pass" placeholder="Create a strong password"/>
+      <input type="password" id="r-pass" placeholder="Create a strong password" autocomplete="new-password"/>
       <div class="pw-hint">At least 8 characters · One uppercase letter · One number</div>
     </div>
     <div class="ferr" id="r-err"></div>
@@ -655,7 +655,21 @@ document.getElementById('do-register')?.addEventListener('click',async()=>{
   const err=document.getElementById('r-err');err.classList.remove('show');
   const res=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,email:e,password:p})});
   const d=await res.json();
-  if(d.error){err.textContent=d.error;err.classList.add('show');}else location.reload();
+  if(d.error){err.textContent=d.error;err.classList.add('show');return;}
+  // Registered and logged in — now try to auto-save if there are results
+  closeModal('modal-register');
+  const name=(document.getElementById('maze-name').value||'').trim();
+  if((S.results.dfs||S.results.bfs) && name){
+    try{
+      const sr=await fetch('/api/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({grid:S.grid,start:S.start,end:S.end,name,dfs:S.results.dfs,bfs:S.results.bfs,explanation:S.lastExplanation||''})});
+      const sd=await sr.json();
+      if(sd.status==='saved'){toast('✓ Account created and maze saved!','success');setTimeout(()=>location.reload(),1400);}
+      else{toast('Account created! '+( sd.error||'Could not auto-save.'),'info');setTimeout(()=>location.reload(),1400);}
+    }catch(e){toast('Account created!','success');setTimeout(()=>location.reload(),1400);}
+  } else {
+    toast('Account created! You are now signed in.','success');
+    setTimeout(()=>location.reload(),1400);
+  }
 });
 
 document.getElementById('btn-logout')?.addEventListener('click',async()=>{
@@ -769,11 +783,15 @@ if(editId){
   if(speedEl){speedEl.value=defaultSpeed;document.getElementById('speed-val').textContent=defaultSpeed;}
   initGrid(defaultSize,defaultSize);
 }
-window.addEventListener('pagehide', ()=>{
+function clearAllInputs(){
   ['maze-name','l-user','l-pass','r-user','r-email','r-pass'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value='';
   });
-});
+  document.querySelectorAll('.ferr').forEach(el=>el.classList.remove('show'));
+}
+window.addEventListener('pagehide', clearAllInputs);
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') clearAllInputs(); });
+document.querySelectorAll('.mclose').forEach(btn=>btn.addEventListener('click', clearAllInputs));
 </script>
 </body>
 </html>
