@@ -143,6 +143,22 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 
 #loading{text-align:center;padding:60px;color:var(--muted);font-size:14px;}
 ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+@media(max-width:768px){
+  header{padding:8px 12px;}
+  .hbtn{padding:5px 9px;font-size:11px;}
+  .user-pill{display:none;}
+  .page{padding:24px 14px;}
+  .pg-title{font-size:26px;}
+  .stats{grid-template-columns:1fr 1fr;}
+  .grid-list{grid-template-columns:1fr;}
+  .dm-body{grid-template-columns:1fr;gap:16px;}
+  .dm-algo-row{grid-template-columns:1fr;}
+  .dm-head{padding:16px;flex-wrap:wrap;gap:8px;}
+  .filters{gap:5px;}
+  .fbtn{font-size:11px;padding:5px 10px;}
+  .overlay{padding:10px;}
+  .detail-modal{max-height:95vh;}
+}
 
 /* toast */
 #toast{position:fixed;bottom:24px;right:24px;z-index:9999;padding:11px 20px;border-radius:10px;font-size:13px;font-weight:500;transform:translateY(60px);opacity:0;pointer-events:none;transition:all 0.3s;box-shadow:var(--shadow-lg);}

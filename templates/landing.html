@@ -7,6 +7,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
+  @media(max-width:768px){
+  header{padding:8px 12px;}
+  .hbtn{padding:5px 9px;font-size:11px;}
+  .user-pill{display:none;}
+  .hero-title{font-size:36px;}
+  .hero-sub{font-size:15px;}
+  .cta-row{flex-direction:column;align-items:stretch;}
+  .cta-btn{text-align:center;}
+  .features{grid-template-columns:1fr;}
+  .modal{padding:20px 14px;}
+}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
   --cream:#faf7f2; --warm:#f5efe6; --sand:#e8ddd0;
@@ -523,6 +534,11 @@ document.getElementById('btn-do-register')?.addEventListener('click', async()=>{
 document.getElementById('btn-logout-header')?.addEventListener('click', async()=>{
   await fetch('/api/logout',{method:'POST'});
   location.reload();
+});
+window.addEventListener('pagehide', ()=>{
+  ['l-user','l-pass','r-user','r-email','r-pass'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
 });
 </script>
 </body>
