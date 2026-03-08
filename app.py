@@ -296,5 +296,25 @@ def delete_maze(maze_id):
     db.commit(); cur.close(); db.close()
     return jsonify({'status':'deleted'})
 
+@app.route('/api/account', methods=['DELETE'])
+def delete_account():
+    u = current_user()
+    if not u: return jsonify({'error':'You must be logged in.'}), 401
+    data = request.get_json()
+    cur_password = data.get('current_password','')
+    if not cur_password: return jsonify({'error':'Password is required.'}), 400
+    db = get_db()
+    if not db: return jsonify({'error':'Could not connect.'}), 500
+    cur = mkc(db)
+    cur.execute("SELECT password FROM users WHERE user_id=%s", (u['id'],))
+    row = cur.fetchone()
+    if not row or row['password'] != hash_password(cur_password):
+        cur.close(); db.close()
+        return jsonify({'error':'Incorrect password.'}), 401
+    cur.execute("DELETE FROM users WHERE user_id=%s", (u['id'],))
+    db.commit(); cur.close(); db.close()
+    session.clear()
+    return jsonify({'status':'deleted'})
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

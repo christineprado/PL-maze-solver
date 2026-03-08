@@ -132,6 +132,17 @@ header{display:flex;align-items:center;justify-content:space-between;padding:11p
 #toast.info{background:var(--accent);color:white;}
 
 ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+@media(max-width:768px){
+  header{padding:8px 12px;}
+  .hrow .hbtn:not(.active){display:none;}
+  .logo-name{font-size:14px;}
+  .page{padding:24px 14px 48px;}
+  .pg-title{font-size:26px;}
+  .srow{flex-wrap:wrap;gap:10px;}
+  .ssel{width:100%;}
+  .acct-top{flex-wrap:wrap;}
+  .modal{padding:20px 14px;}
+}
 </style>
 </head>
 <body>
@@ -238,7 +249,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:11p
     {% else %}
     <div class="guest-card">
       <p>You're browsing as a guest. Create a free account to save your mazes and come back to them any time.</p>
-      <a href="/" class="btn-go">Create Account or Sign In</a>
+      <a href="/solver" class="btn-go">Create Account or Sign In</a>
     </div>
     {% endif %}
   </div>
@@ -248,7 +259,6 @@ header{display:flex;align-items:center;justify-content:space-between;padding:11p
     <div class="group-title">About</div>
     <div class="about-card">
       <div class="about-app-name">MazeSolver</div>
-      <div class="about-version">v2.0</div>
       <div class="about-desc">
         An interactive tool for drawing mazes and watching two classic solving strategies — Depth-First Search and Breadth-First Search — race to find the exit. Compare their speed, efficiency, and path quality side by side.
       </div>
@@ -305,6 +315,26 @@ header{display:flex;align-items:center;justify-content:space-between;padding:11p
     <div class="fok" id="p-ok"></div>
 
     <button class="btn-full" id="btn-save-profile">Save Changes</button>
+
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--red);margin-bottom:8px;">Danger Zone</div>
+      <button style="width:100%;padding:11px;border-radius:9px;border:1.5px solid var(--red);background:transparent;color:var(--red);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:4px;" id="btn-delete-account">🗑 Delete My Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE ACCOUNT MODAL -->
+<div class="modal-overlay" id="modal-delete">
+  <div class="modal">
+    <button class="mclose" onclick="document.getElementById('modal-delete').classList.remove('open')">×</button>
+    <div class="modal-title" style="color:var(--red)">Delete Account</div>
+    <div class="modal-sub">This will permanently delete your account and all your saved mazes. <strong>This cannot be undone.</strong></div>
+    <div class="fg">
+      <label>Enter your current password to confirm</label>
+      <input type="password" id="del-curpass" placeholder="Current password"/>
+    </div>
+    <div class="ferr" id="del-err"></div>
+    <button class="btn-full" id="btn-confirm-delete" style="background:var(--red);">Yes, Delete My Account Permanently</button>
   </div>
 </div>
 
@@ -443,6 +473,27 @@ document.getElementById('btn-save-profile')?.addEventListener('click', async()=>
   } catch(e){
     showProfileErr('Could not connect to the server.');
   }
+});
+// DELETE ACCOUNT
+document.getElementById('btn-delete-account')?.addEventListener('click', ()=>{
+  closeModal();
+  setTimeout(()=>{
+    document.getElementById('del-curpass').value='';
+    document.getElementById('del-err').classList.remove('show');
+    document.getElementById('modal-delete').classList.add('open');
+  }, 200);
+});
+document.getElementById('modal-delete')?.addEventListener('click', e=>{ if(e.target===e.currentTarget) e.currentTarget.classList.remove('open'); });
+document.getElementById('btn-confirm-delete')?.addEventListener('click', async()=>{
+  const pass = document.getElementById('del-curpass').value;
+  const errEl = document.getElementById('del-err');
+  if(!pass){ errEl.textContent='Please enter your current password.'; errEl.classList.add('show'); return; }
+  try{
+    const res = await fetch('/api/account', {method:'DELETE', headers:{'Content-Type':'application/json'}, body:JSON.stringify({current_password:pass})});
+    const d = await res.json();
+    if(d.error){ errEl.textContent=d.error; errEl.classList.add('show'); return; }
+    location.href='/';
+  }catch(e){ errEl.textContent='Could not connect.'; errEl.classList.add('show'); }
 });
 </script>
 </body>
