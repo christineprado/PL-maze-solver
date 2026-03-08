@@ -575,8 +575,10 @@ function showCompare(d,b){
     const max=Math.max(vd,vb);
     const db=document.getElementById('bar-dfs'),bb=document.getElementById('bar-bfs');
     if(db)db.style.width=(vd/max*100)+'%';if(bb)bb.style.width=(vb/max*100)+'%';
-    if(d.path_length<=b.path_length)dfsBadges.push('shortest');else bfsBadges.push('shortest');
-    if(d.execution_time_ms<=b.execution_time_ms)dfsBadges.push('fastest');else bfsBadges.push('fastest');
+    if(d.path_length<b.path_length)dfsBadges.push('shortest');
+    else if(b.path_length<d.path_length)bfsBadges.push('shortest');
+    if(d.execution_time_ms<b.execution_time_ms)dfsBadges.push('fastest');
+    else if(b.execution_time_ms<d.execution_time_ms)bfsBadges.push('fastest');
   }else if(d.solved){dfsBadges.push('shortest');dfsBadges.push('fastest');}
   else if(b.solved){bfsBadges.push('shortest');bfsBadges.push('fastest');}
   showCard('DFS',d,dfsBadges);
