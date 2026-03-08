@@ -107,8 +107,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 .dm-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;}
 .dm-meta{font-size:13px;color:var(--muted);margin-top:4px;}
 .dm-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);}
-.dm-body{padding:24px 28px;display:grid;grid-template-columns:auto 1fr;gap:28px;}
-.dm-maze{display:flex;flex-direction:column;align-items:center;gap:12px;}
+.dm-body{padding:24px 28px;display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:start;}
+.dm-maze{display:flex;flex-direction:column;align-items:center;gap:12px;min-width:200px;}
 .dm-maze-title{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
 .dm-right{display:flex;flex-direction:column;gap:20px;}
 .dm-section-title{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
@@ -508,7 +508,9 @@ async function openDetail(mazeId){
 
     const dPath=results.DFS?.path||[];
     const bPath=results.BFS?.path||[];
-    const bigMaze=buildMiniMaze(m.grid_data,m.start_row,m.start_col,m.end_row,m.end_col,dPath,bPath,10);
+    const maxDim=Math.max(m.grid_rows,m.grid_cols);
+    const cellSize=maxDim<=15?22:maxDim<=21?16:11;
+    const bigMaze=buildMiniMaze(m.grid_data,m.start_row,m.start_col,m.end_row,m.end_col,dPath,bPath,cellSize);
     document.getElementById('dm-maze-grid').appendChild(bigMaze);
 
     const row=document.getElementById('dm-algo-row');

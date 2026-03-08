@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Settings — MazeSolver</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧩</text></svg>"/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -143,6 +142,19 @@ header{display:flex;align-items:center;justify-content:space-between;padding:11p
   .ssel{width:100%;}
   .acct-top{flex-wrap:wrap;}
   .modal{padding:20px 14px;}
+}
+
+.pw-wrap{position:relative;display:flex;align-items:center;}
+.pw-wrap input{width:100%;padding-right:38px;}
+.pw-eye{position:absolute;right:10px;background:none;border:none;cursor:pointer;font-size:16px;color:var(--muted);padding:0;line-height:1;flex-shrink:0;}
+
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input::-webkit-contacts-auto-fill-button,
+input::-webkit-credentials-auto-fill-button {
+  display: none !important;
+  visibility: hidden;
+  pointer-events: none;
 }
 </style>
 </head>
@@ -301,7 +313,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:11p
     </div>
     <div class="fg">
       <label>New Password</label>
-      <input type="password" id="p-newpass" placeholder="Leave blank to keep current"/>
+      <div class="pw-wrap"><input type="password" id="p-newpass" placeholder="Leave blank to keep current"/><button type="button" class="pw-eye" onclick="togglePw('p-newpass',this)"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg></button></div>
       <div class="fg-hint">At least 8 characters · One uppercase · One number</div>
     </div>
 
@@ -309,7 +321,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:11p
 
     <div class="fg">
       <label>Current Password <span style="color:var(--red)">*</span></label>
-      <input type="password" id="p-curpass" placeholder="Required to confirm changes"/>
+      <div class="pw-wrap"><input type="password" id="p-curpass" placeholder="Required to confirm changes"/><button type="button" class="pw-eye" onclick="togglePw('p-curpass',this)"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg></button></div>
     </div>
 
     <div class="ferr" id="p-err"></div>
@@ -332,7 +344,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:11p
     <div class="modal-sub">This will permanently delete your account and all your saved mazes. <strong>This cannot be undone.</strong></div>
     <div class="fg">
       <label>Enter your current password to confirm</label>
-      <input type="password" id="del-curpass" placeholder="Current password"/>
+      <div class="pw-wrap"><input type="password" id="del-curpass" placeholder="Current password"/><button type="button" class="pw-eye" onclick="togglePw('del-curpass',this)"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg></button></div>
     </div>
     <div class="ferr" id="del-err"></div>
     <button class="btn-full" id="btn-confirm-delete" style="background:var(--red);">Yes, Delete My Account Permanently</button>
@@ -496,6 +508,14 @@ document.getElementById('btn-confirm-delete')?.addEventListener('click', async()
     location.href='/';
   }catch(e){ errEl.textContent='Could not connect.'; errEl.classList.add('show'); }
 });
+
+function togglePw(id,btn){
+  const el=document.getElementById(id);
+  el.type=el.type==='password'?'text':'password';
+  const eyeOpen='<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>';
+  const eyeClosed='<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46A11.804 11.804 0 0 0 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78 3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>';
+  btn.innerHTML=el.type==='password'?eyeClosed:eyeOpen;
+}
 </script>
 </body>
 </html>
