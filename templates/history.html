@@ -99,7 +99,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 .overlay.open{display:grid;}
 .detail-modal{
   background:var(--panel);border-radius:20px;
-  width:100%;max-width:860px;max-height:90vh;overflow-y:auto;
+  width:100%;max-width:1100px;max-height:92vh;overflow-y:auto;
   box-shadow:var(--shadow-lg);animation:popIn 0.25s ease;
 }
 @keyframes popIn{from{transform:scale(0.96);opacity:0;}to{transform:scale(1);opacity:1;}}
@@ -107,10 +107,10 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 .dm-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;}
 .dm-meta{font-size:13px;color:var(--muted);margin-top:4px;}
 .dm-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);}
-.dm-body{padding:24px 28px;display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:start;}
-.dm-maze{display:flex;flex-direction:column;align-items:center;gap:12px;min-width:200px;}
-.dm-maze-title{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
-.dm-right{display:flex;flex-direction:column;gap:20px;}
+.dm-body{padding:24px 28px;display:flex;flex-direction:column;gap:20px;align-items:center;}
+.dm-maze{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;}
+.dm-maze-title{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;text-align:center;}
+.dm-right{display:flex;flex-direction:column;gap:16px;width:100%;}
 .dm-section-title{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
 .dm-algo-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 .dm-algo-card{border-radius:12px;border:1.5px solid var(--border);overflow:hidden;}
@@ -508,15 +508,27 @@ async function openDetail(mazeId){
 
     const dPath=results.DFS?.path||[];
     const bPath=results.BFS?.path||[];
+    const runAlgos=['DFS','BFS'].filter(a=>results[a]);
+    const isBoth=runAlgos.length===2;
+
+    // Build maze at base cell size filling modal width
     const maxDim=Math.max(m.grid_rows,m.grid_cols);
-    const cellSize=maxDim<=15?22:maxDim<=21?16:11;
-    const bigMaze=buildMiniMaze(m.grid_data,m.start_row,m.start_col,m.end_row,m.end_col,dPath,bPath,cellSize);
-    document.getElementById('dm-maze-grid').appendChild(bigMaze);
+    const modalW=document.getElementById('detail-modal').offsetWidth||900;
+    let baseCell=Math.max(18,Math.floor((modalW-80)/maxDim));
+    const mazeGrid=document.getElementById('dm-maze-grid');
+
+    function rebuildMaze(zoom){
+      const cs=Math.round(baseCell*(zoom/100));
+      mazeGrid.innerHTML='';
+      mazeGrid.appendChild(buildMiniMaze(m.grid_data,m.start_row,m.start_col,m.end_row,m.end_col,dPath,bPath,cs));
+    }
+    rebuildMaze(100);
 
     const row=document.getElementById('dm-algo-row');
-    const runAlgos=['DFS','BFS'].filter(a=>results[a]);
-    if(runAlgos.length===1) row.style.gridTemplateColumns='1fr';
+    if(!isBoth) row.style.gridTemplateColumns='1fr';
+
     runAlgos.forEach(algo=>{
+
       const r=results[algo];
       const name=algo==='DFS'?'Depth-First Search':'Breadth-First Search';
       const color=algo==='DFS'?'var(--dfs)':'var(--bfs)';
