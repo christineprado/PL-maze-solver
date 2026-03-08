@@ -32,14 +32,23 @@ def validate_password(pw):
     if not re.search(r'\d', pw): return False, 'Password must contain at least one number.'
     return True, ''
 
+from flask import redirect, url_for
+
 @app.route('/')
 def landing(): return render_template('landing.html', user=current_user())
+
 @app.route('/solver')
-def solver(): return render_template('index.html', user=current_user())
+def solver():
+    return render_template('index.html', user=current_user())
+
 @app.route('/history')
-def history_page(): return render_template('history.html', user=current_user())
+def history_page():
+    if not current_user(): return redirect(url_for('landing'))
+    return render_template('history.html', user=current_user())
+
 @app.route('/settings')
-def settings_page(): return render_template('settings.html', user=current_user())
+def settings_page():
+    return render_template('settings.html', user=current_user())
 
 @app.route('/api/register', methods=['POST'])
 def register():
