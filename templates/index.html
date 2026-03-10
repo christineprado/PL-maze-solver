@@ -10,7 +10,7 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 [data-theme="light"]{--bg:#faf7f2;--bg2:#f5efe6;--bg3:#fff;--panel:#fff;--panel2:#e8e0d8;--border:#ddd5cc;--text:#2d2420;--mid:#5a4a42;--muted:#9a8a82;--accent:#c2622a;--accent-h:#a84f1f;--accent-bg:#fdf0ea;--green:#2d7a4f;--green-bg:#e8f5ee;--red:#b83228;--red-bg:#fdeaea;--dfs:#6d28d9;--dfs-bg:#f5f3ff;--dfs-vis:rgba(109,40,217,0.14);--bfs:#0369a1;--bfs-bg:#e8f4fd;--bfs-vis:rgba(3,105,161,0.14);--yellow:#b45309;--shadow:0 2px 16px rgba(45,36,32,0.08);--shadow-lg:0 8px 40px rgba(45,36,32,0.13);}
-[data-theme="dark"]{--bg:#0f1117;--bg2:#161b27;--bg3:#1e2535;--panel:#1e2535;--panel2:#252d40;--border:#2a3550;--text:#e8eaf6;--mid:#8a9ac0;--muted:#4a5a7a;--accent:#f97316;--accent-h:#ea6000;--accent-bg:#2d1a0a;--green:#22c55e;--green-bg:#0a2d1a;--red:#ef4444;--red-bg:#2d0a0a;--dfs:#a78bfa;--dfs-bg:#1e1530;--dfs-vis:rgba(167,139,250,0.2);--bfs:#38bdf8;--bfs-bg:#0a1e30;--bfs-vis:rgba(56,189,248,0.2);--yellow:#fbbf24;--shadow:0 2px 16px rgba(0,0,0,0.3);--shadow-lg:0 8px 40px rgba(0,0,0,0.4);}
+[data-theme="dark"]{--bg:#0f1117;--bg2:#161b27;--bg3:#1e2535;--panel:#1e2535;--panel2:#4a5568;--border:#2a3550;--text:#e8eaf6;--mid:#8a9ac0;--muted:#5a7090;--accent:#f97316;--accent-h:#ea6000;--accent-bg:#2d1a0a;--green:#22c55e;--green-bg:#0a2d1a;--red:#ef4444;--red-bg:#2d0a0a;--dfs:#a78bfa;--dfs-bg:#1e1530;--dfs-vis:rgba(167,139,250,0.22);--bfs:#38bdf8;--bfs-bg:#0a1e30;--bfs-vis:rgba(56,189,248,0.22);--yellow:#fbbf24;--shadow:0 2px 16px rgba(0,0,0,0.3);--shadow-lg:0 8px 40px rgba(0,0,0,0.4);}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;transition:background 0.3s,color 0.3s;}
 header{display:flex;align-items:center;justify-content:space-between;padding:11px 22px;background:var(--panel);border-bottom:1px solid var(--border);box-shadow:var(--shadow);position:relative;z-index:50;}
 .logo{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--text);}
@@ -187,7 +187,7 @@ input::-webkit-credentials-auto-fill-button {
   </a>
   <div class="hrow">
     <a href="/" class="hbtn">← Home</a>
-    <a href="/history" class="hbtn">My Results</a>
+    {% if user %}<a href="/history" class="hbtn">My Results</a>{% endif %}
     <a href="/settings" class="hbtn">Settings</a>
     <button class="theme-toggle" id="theme-toggle" title="Toggle theme">🌙</button>
     {% if user %}
@@ -206,10 +206,10 @@ input::-webkit-credentials-auto-fill-button {
   <div class="cg">
     <label>Maze Size</label>
     <select id="grid-size">
-      <option value="15">Small (15×15)</option>
-      <option value="21">Medium (21×21)</option>
-      <option value="25">Large (25×25)</option>
-      <option value="31">Extra Large (31×31)</option>
+      <option value="11">Small (11×11)</option>
+      <option value="15">Medium (15×15)</option>
+      <option value="21">Large (21×21)</option>
+      <option value="25">Extra Large (25×25)</option>
     </select>
   </div>
   <button class="rbtn rbtn-outline" id="btn-generate" style="width:100%;font-size:12px">⚡ Generate Random Maze</button>
@@ -226,7 +226,7 @@ input::-webkit-credentials-auto-fill-button {
     <button class="tbtn active" data-mode="wall">🧱 Wall</button>
     <button class="tbtn" data-mode="erase">✏️ Erase</button>
     <button class="tbtn" data-mode="start">🟢 Start</button>
-    <button class="tbtn" data-mode="end">🔴 Finish</button>
+    <button class="tbtn" data-mode="end">🔴 End</button>
   </div>
   <div class="mode-indicator">
     <div class="mode-dot" id="mode-dot"></div>
@@ -271,7 +271,7 @@ input::-webkit-credentials-auto-fill-button {
     <div class="leg-item"><div class="leg-sw" style="background:var(--bg3);border:1px solid var(--border)"></div>Open path</div>
     <div class="leg-item"><div class="leg-sw" style="background:var(--panel2)"></div>Wall (blocked)</div>
     <div class="leg-item"><div class="leg-sw" style="background:var(--green)"></div>Start point (S)</div>
-    <div class="leg-item"><div class="leg-sw" style="background:var(--red)"></div>Finish point (E)</div>
+    <div class="leg-item"><div class="leg-sw" style="background:var(--red)"></div>End point (E)</div>
     <div class="leg-item"><div class="leg-sw" style="background:var(--dfs-vis);border:1px solid var(--dfs)"></div>DFS explored</div>
     <div class="leg-item"><div class="leg-sw" style="background:var(--bfs-vis);border:1px solid var(--bfs)"></div>BFS explored</div>
     <div class="leg-item"><div class="leg-sw" style="background:var(--dfs)"></div>DFS solution path</div>
@@ -335,11 +335,11 @@ input::-webkit-credentials-auto-fill-button {
     <button class="mclose" onclick="closeModal('modal-register')">×</button>
     <div class="modal-title">Create account</div>
     <div class="modal-sub">Free. Save unlimited mazes and results.</div>
-    <div class="fg"><label>Username</label><input type="text" id="r-user" placeholder="Letters, numbers, underscores" autocomplete="username"/>
-    <div class="fg"><label>Email</label><input type="email" id="r-email" placeholder="yourname@gmail.com" autocomplete="email"/>
+    <div class="fg"><label>Username</label><input type="text" id="r-user" placeholder="Letters, numbers, underscores" autocomplete="username"/></div>
+    <div class="fg"><label>Email</label><input type="email" id="r-email" placeholder="yourname@gmail.com" autocomplete="email"/></div>
     <div class="fg">
       <label>Password</label>
-      <div class="pw-wrap"><input type="password" id="r-pass" placeholder="Create a strong password" autocomplete="new-password"/><button type="button" class="pw-eye" onclick="togglePw('r-pass',this)"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg></button>/div>
+      <div class="pw-wrap"><input type="password" id="r-pass" placeholder="Create a strong password" autocomplete="new-password"/><button type="button" class="pw-eye" onclick="togglePw('r-pass',this)"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg></button></div>
       <div class="pw-hint">At least 8 characters · One uppercase letter · One number</div>
     </div>
     <div class="ferr" id="r-err"></div>
@@ -374,18 +374,18 @@ const S={rows:15,cols:15,grid:[],start:[1,1],end:[13,13],mode:'wall',drawing:fal
 
 function initGrid(rows,cols,gridData=null){
   S.rows=rows;S.cols=cols;
-  const cs=rows<=15?32:rows<=21?26:rows<=25?21:16;
+  const cs=rows<=11?36:rows<=15?32:rows<=21?26:21;
   S.baseCs=cs;
-  const zoom=+(document.getElementById('maze-zoom')?.value||100)/100;
+  const zoomEl=document.getElementById('maze-zoom');
+  const zoom=+(zoomEl?.value||100)/100;
   document.documentElement.style.setProperty('--cs',Math.round(cs*zoom)+'px');
-  document.documentElement.style.setProperty('--cs',cs+'px');
   if(!gridData){
     S.grid=Array.from({length:rows},()=>Array(cols).fill(0));
     for(let r=0;r<rows;r++){S.grid[r][0]=1;S.grid[r][cols-1]=1;}
     for(let c=0;c<cols;c++){S.grid[0][c]=1;S.grid[rows-1][c]=1;}
+    S.start=[1,1];S.end=[rows-2,cols-2];
+    S.grid[S.start[0]][S.start[1]]=0;S.grid[S.end[0]][S.end[1]]=0;
   }else{S.grid=gridData;}
-  S.start=[1,1];S.end=[rows-2,cols-2];
-  S.grid[S.start[0]][S.start[1]]=0;S.grid[S.end[0]][S.end[1]]=0;
   renderGrid();S.results={dfs:null,bfs:null};
   resetResultsPanel();
   document.getElementById('btn-save').disabled=true;
@@ -443,7 +443,12 @@ async function animate(result,visCls,pathCls){
   const iv=Math.max(5,200-(+document.getElementById('speed').value)*2);
   if(S.stepMode)document.getElementById('step-bar').classList.add('show');
   for(let i=0;i<result.visited.length;i++){
-    if(S.skipFlag||S.cancelFlag)break;
+    if(S.cancelFlag)break;
+    if(S.skipFlag){
+      // Draw all remaining visited cells instantly
+      for(let j=i;j<result.visited.length;j++){const[r,c]=result.visited[j];colorCell(r,c,visCls);}
+      break;
+    }
     while(S.pauseFlag&&!S.cancelFlag) await delay(100);
     if(S.cancelFlag)break;
     const[r,c]=result.visited[i];colorCell(r,c,visCls);
@@ -451,12 +456,12 @@ async function animate(result,visCls,pathCls){
     else await delay(iv);
   }
   if(!S.cancelFlag){
+    // Always draw full path (even if skipped)
     for(let i=0;i<result.path.length;i++){
-      if(S.skipFlag||S.cancelFlag)break;
-      while(S.pauseFlag&&!S.cancelFlag) await delay(100);
       if(S.cancelFlag)break;
+      while(S.pauseFlag&&!S.cancelFlag&&!S.skipFlag) await delay(100);
       const[r,c]=result.path[i];colorCell(r,c,pathCls);
-      if(S.stepMode)await waitStep();else await delay(iv/2);
+      if(!S.skipFlag&&S.stepMode)await waitStep();else if(!S.skipFlag)await delay(iv/2);
     }
   }
   document.getElementById('step-bar').classList.remove('show');
@@ -569,7 +574,7 @@ function generateExplanation(d,b){
   else lines.push(`DFS happened to find a shorter path (${dPath} steps vs BFS's ${bPath} steps) on this maze. This can occur when the direct route to the exit aligns with the direction DFS naturally explores first.`);
   if(dTime<bTime) lines.push(`DFS was faster (${formatTime(dTime)} vs ${formatTime(bTime)}). DFS commits to one path and stops as soon as it finds the exit, so it tends to be quicker when a clear deep route exists.`);
   else if(bTime<dTime) lines.push(`BFS finished faster (${formatTime(bTime)} vs ${formatTime(dTime)}). On this maze BFS reached the exit while spreading outward, without the backtracking that DFS had to do.`);
-  else lines.push(`Both solvers finished in about the same time on this maze.`);
+  else lines.push(`Both solvers finished in exactly the same time (${formatTime(dTime)}) on this maze, so neither is declared faster.`);
   if(vd<vb) lines.push(`DFS also checked fewer spots (${vd} vs ${vb}), meaning it explored less of the maze overall.`);
   else if(vb<vd) lines.push(`BFS checked fewer spots (${vb} vs ${vd}), spreading toward the exit more directly.`);
   return lines.join(' ');
@@ -646,6 +651,12 @@ async function saveRun(){
   if(!name){toast('Please enter a name for this maze first.','error');return;}
   try{
     if(S.editingId){
+      if(S.originalGrid){
+        const same=JSON.stringify(S.grid)===JSON.stringify(S.originalGrid)&&
+          S.start[0]===S.originalStart[0]&&S.start[1]===S.originalStart[1]&&
+          S.end[0]===S.originalEnd[0]&&S.end[1]===S.originalEnd[1];
+        if(same){toast('No changes were made.','info');return;}
+      }
       const res=await fetch(`/api/maze/${S.editingId}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({full_update:true,grid:S.grid,start:S.start,end:S.end,name,dfs:S.results.dfs,bfs:S.results.bfs,explanation:S.lastExplanation||''})});
       const d=await res.json();
       if(d.status==='updated'){toast('✓ Updated! Changes saved to My Results.','success');setTimeout(()=>{location.href='/history';},1200);}
@@ -688,9 +699,9 @@ document.getElementById('do-register')?.addEventListener('click',async()=>{
     try{
       const sr=await fetch('/api/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({grid:S.grid,start:S.start,end:S.end,name,dfs:S.results.dfs,bfs:S.results.bfs,explanation:S.lastExplanation||''})});
       const sd=await sr.json();
-      if(sd.status==='saved'){toast('✓ Account created and maze saved!','success');setTimeout(()=>location.reload(),1400);}
-      else{toast('Account created! '+( sd.error||'Could not auto-save.'),'info');setTimeout(()=>location.reload(),1400);}
-    }catch(e){toast('Account created!','success');setTimeout(()=>location.reload(),1400);}
+      if(sd.status==='saved'){toast('✓ Account created and maze saved!','success');setTimeout(()=>location.href='/history',1400);}
+      else{toast('Account created! '+(sd.error||'Could not auto-save.'),'info');setTimeout(()=>location.href='/history',1400);}
+    }catch(e){toast('Account created!','success');setTimeout(()=>location.href='/history',1400);}
   } else {
     toast('Account created! You are now signed in.','success');
     setTimeout(()=>location.reload(),1400);
@@ -716,11 +727,16 @@ document.querySelectorAll('.tbtn').forEach(btn=>{
 document.getElementById('grid-size').addEventListener('change',e=>initGrid(+e.target.value,+e.target.value));
 document.getElementById('btn-generate').addEventListener('click',generateMaze);
 document.getElementById('btn-clear').addEventListener('click',async()=>{
-  const needsConfirm=localStorage.getItem('confirm-clear')!=='false';
-  if(needsConfirm){
-    const ok=await confirm('🗑','Clear everything?','This will remove all walls and reset the maze. This cannot be undone.','Yes, clear it');
-    if(!ok)return;
+  const hasWalls=S.grid.some((row,r)=>row.some((v,c)=>v===1&&!(r===S.start[0]&&c===S.start[1])&&!(r===S.end[0]&&c===S.end[1])));
+  const hasBorder=true;
+  let hasContent=false;
+  for(let r=0;r<S.rows;r++)for(let c=0;c<S.cols;c++){
+    if(r===0||r===S.rows-1||c===0||c===S.cols-1)continue;
+    if(S.grid[r][c]===1){hasContent=true;break;}
   }
+  if(!hasContent&&!S.results.dfs&&!S.results.bfs){toast('There is nothing to clear.','info');return;}
+  const ok=await confirm('🗑','Clear everything?','This will remove all walls and reset the maze. This cannot be undone.','Yes, clear it');
+  if(!ok)return;
   initGrid(S.rows,S.cols);setStatus('Maze cleared. Start fresh!');
 });
 document.getElementById('btn-dfs').addEventListener('click',()=>runAlgo('DFS'));
@@ -757,6 +773,7 @@ document.getElementById('btn-save').addEventListener('click',()=>{
 });
 document.getElementById('btn-next').addEventListener('click',()=>{if(S.stepResolve){S.stepResolve();S.stepResolve=null;}});
 document.getElementById('btn-skip').addEventListener('click',()=>{S.skipFlag=true;if(S.stepResolve){S.stepResolve();S.stepResolve=null;}});
+document.getElementById('speed').addEventListener('input',e=>{document.getElementById('speed-val').textContent=e.target.value;});
 document.getElementById('maze-zoom').addEventListener('input',e=>{
   document.getElementById('zoom-val').textContent=e.target.value+'%';
   const zoom=+e.target.value/100;
@@ -785,6 +802,9 @@ if(editId){
     S.start=[m.start_row, m.start_col];
     S.end=[m.end_row, m.end_col];
     refreshAll();
+    S.originalGrid=S.grid.map(row=>[...row]);
+    S.originalStart=[...S.start];
+    S.originalEnd=[...S.end];
     S.editingId=+editId;
     document.getElementById('maze-name').value=m.maze_name;
     setStatus(`Loaded "${m.maze_name}" for editing. Make your changes then run a solver.`,'done');

@@ -16,8 +16,8 @@
   --yellow:#b45309;--shadow:0 2px 16px rgba(45,36,32,0.08);--shadow-lg:0 8px 40px rgba(45,36,32,0.12);
 }
 [data-theme="dark"]{
-  --bg:#0f1117;--bg2:#161b27;--bg3:#1e2535;--panel:#1e2535;--panel2:#252d40;
-  --border:#2a3550;--text:#e8eaf6;--mid:#8a9ac0;--muted:#4a5a7a;
+  --bg:#0f1117;--bg2:#161b27;--bg3:#1e2535;--panel:#1e2535;--panel2:#4a5568;
+  --border:#2a3550;--text:#e8eaf6;--mid:#8a9ac0;--muted:#5a7090;
   --accent:#f97316;--accent-h:#ea6000;--accent-bg:#2d1a0a;
   --green:#22c55e;--green-bg:#0a2d1a;--red:#ef4444;--red-bg:#2d0a0a;
   --yellow:#fbbf24;--shadow:0 2px 16px rgba(0,0,0,0.3);--shadow-lg:0 8px 40px rgba(0,0,0,0.4);
@@ -91,7 +91,6 @@ header{display:flex;align-items:center;justify-content:space-between;padding:11p
 .dev-name{font-size:13px;font-weight:600;color:var(--text);}
 .dev-role{font-size:11px;color:var(--muted);margin-top:1px;}
 
-/* ── EDIT PROFILE MODAL ── */
 .modal-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.38);backdrop-filter:blur(4px);display:none;place-items:center;padding:20px;}
 .modal-overlay.open{display:grid;}
 .modal{background:var(--panel);border-radius:16px;padding:30px;max-width:440px;width:100%;position:relative;box-shadow:var(--shadow-lg);animation:popIn 0.25s ease;max-height:90vh;overflow-y:auto;}
@@ -112,6 +111,9 @@ header{display:flex;align-items:center;justify-content:space-between;padding:11p
 .fok.show{display:block;}
 .btn-full{width:100%;padding:11px;border-radius:9px;border:none;background:var(--accent);color:white;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background 0.2s;margin-top:4px;}
 .btn-full:hover{background:var(--accent-h);}
+.modal-switch{text-align:center;margin-top:13px;font-size:13px;color:var(--mid);}
+.modal-switch a{color:var(--accent);font-weight:600;cursor:pointer;}
+.pw-hint{font-size:11px;color:var(--muted);margin-top:5px;}
 
 /* ── CONFIRM DIALOG ── */
 .dialog-overlay{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.38);backdrop-filter:blur(3px);display:none;place-items:center;}
@@ -168,7 +170,7 @@ input::-webkit-credentials-auto-fill-button {
   <div class="hrow">
     <a href="/" class="hbtn">← Home</a>
     <a href="/solver" class="hbtn">Solver</a>
-    <a href="/history" class="hbtn">My Results</a>
+    {% if user %}<a href="/history" class="hbtn">My Results</a>{% endif %}
     <a href="/settings" class="hbtn active">Settings</a>
     <button class="theme-toggle" id="theme-toggle">🌙</button>
     {% if user %}
@@ -212,10 +214,10 @@ input::-webkit-credentials-auto-fill-button {
         <div class="sdesc">The grid size pre-selected when you open the solver</div>
       </div>
       <select class="ssel" id="sel-size">
-        <option value="15" selected>Small (15×15)</option>
-        <option value="21">Medium (21×21)</option>
-        <option value="25">Large (25×25)</option>
-        <option value="31">Extra Large (31×31)</option>
+        <option value="11">Small (11×11)</option>
+        <option value="15" selected>Medium (15×15)</option>
+        <option value="21">Large (21×21)</option>
+        <option value="25">Extra Large (25×25)</option>
       </select>
     </div>
   </div>
@@ -262,7 +264,8 @@ input::-webkit-credentials-auto-fill-button {
     {% else %}
     <div class="guest-card">
       <p>You're browsing as a guest. Create a free account to save your mazes and come back to them any time.</p>
-      <a href="/?action=register" class="btn-go">Create Account or Sign In</a>
+      <button class="btn-go" onclick="openGuestModal('register')">Create Account</button>
+      <button class="btn-go" style="margin-left:8px;background:transparent;border:1.5px solid var(--accent);color:var(--accent);" onclick="openGuestModal('login')">Sign In</button>
     </div>
     {% endif %}
   </div>
@@ -299,7 +302,7 @@ input::-webkit-credentials-auto-fill-button {
 <!-- ── EDIT PROFILE MODAL ── -->
 <div class="modal-overlay" id="modal-profile">
   <div class="modal">
-    <button class="mclose" onclick="closeModal()">×</button>
+    <button class="mclose" onclick="closeProfileModal()">×</button>
     <div class="modal-title">Edit Profile</div>
     <div class="modal-sub">Leave a field blank to keep it unchanged. You must enter your current password to save any changes.</div>
 
@@ -365,6 +368,37 @@ input::-webkit-credentials-auto-fill-button {
 </div>
 
 <div id="toast"></div>
+
+<div class="modal-overlay" id="modal-login">
+  <div class="modal">
+    <button class="mclose" onclick="closeModal('modal-login')">×</button>
+    <div class="modal-title">Welcome back</div>
+    <div class="modal-sub">Sign in to save and access your results.</div>
+    <div class="fg"><label>Username or Email</label><input type="text" id="l-user" placeholder="Your username or email"/></div>
+    <div class="fg"><label>Password</label><div class="pw-wrap"><input type="password" id="l-pass" placeholder="Your password"/><button type="button" class="pw-eye" onclick="togglePw('l-pass',this)"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg></button></div></div>
+    <div class="ferr" id="l-err"></div>
+    <button class="btn-full" id="do-login">Sign In</button>
+    <div class="modal-switch">No account? <a onclick="switchModal('modal-login','modal-register')">Create one free →</a></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-register">
+  <div class="modal">
+    <button class="mclose" onclick="closeModal('modal-register')">×</button>
+    <div class="modal-title">Create account</div>
+    <div class="modal-sub">Free. Save unlimited mazes and results.</div>
+    <div class="fg"><label>Username</label><input type="text" id="r-user" placeholder="Letters, numbers, underscores" autocomplete="username"/></div>
+    <div class="fg"><label>Email</label><input type="email" id="r-email" placeholder="yourname@gmail.com" autocomplete="email"/></div>
+    <div class="fg">
+      <label>Password</label>
+      <div class="pw-wrap"><input type="password" id="r-pass" placeholder="Create a strong password" autocomplete="new-password"/><button type="button" class="pw-eye" onclick="togglePw('r-pass',this)"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg></button></div>
+      <div class="pw-hint">At least 8 characters · One uppercase letter · One number</div>
+    </div>
+    <div class="ferr" id="r-err"></div>
+    <button class="btn-full" id="do-register">Create Account</button>
+    <div class="modal-switch">Already registered? <a onclick="switchModal('modal-register','modal-login')">Sign in →</a></div>
+  </div>
+</div>
 
 <script>
 // ── THEME ──────────────────────────────────────────────────────
@@ -438,10 +472,10 @@ document.getElementById('btn-sign-out')?.addEventListener('click', async()=>{
 });
 
 // ── EDIT PROFILE MODAL ─────────────────────────────────────────
-function openModal(){ document.getElementById('modal-profile').classList.add('open'); clearProfileForm(); }
-function closeModal(){ document.getElementById('modal-profile').classList.remove('open'); }
-document.getElementById('modal-profile')?.addEventListener('click', e=>{ if(e.target===e.currentTarget) closeModal(); });
-document.getElementById('btn-edit-profile')?.addEventListener('click', openModal);
+function openProfileModal(){ document.getElementById('modal-profile').classList.add('open'); clearProfileForm(); }
+function closeProfileModal(){ document.getElementById('modal-profile').classList.remove('open'); }
+document.getElementById('modal-profile')?.addEventListener('click', e=>{ if(e.target===e.currentTarget) closeProfileModal(); });
+document.getElementById('btn-edit-profile')?.addEventListener('click', openProfileModal);
 
 function clearProfileForm(){
   ['p-username','p-email','p-newpass','p-curpass'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
@@ -489,7 +523,7 @@ document.getElementById('btn-save-profile')?.addEventListener('click', async()=>
 });
 // DELETE ACCOUNT
 document.getElementById('btn-delete-account')?.addEventListener('click', ()=>{
-  closeModal();
+  closeProfileModal();
   setTimeout(()=>{
     document.getElementById('del-curpass').value='';
     document.getElementById('del-err').classList.remove('show');
@@ -516,6 +550,52 @@ function togglePw(id,btn){
   const eyeClosed='<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46A11.804 11.804 0 0 0 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78 3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>';
   btn.innerHTML=el.type==='password'?eyeClosed:eyeOpen;
 }
+
+function openGuestModal(type){
+  const id=type==='register'?'modal-register':'modal-login';
+  document.getElementById(id)?.classList.add('open');
+}
+
+function openModal(id){document.getElementById(id)?.classList.add('open');}
+function clearGuestInputs(){
+  ['l-user','l-pass','r-user','r-email','r-pass'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  document.querySelectorAll('#modal-login .ferr,#modal-register .ferr').forEach(el=>el.classList.remove('show'));
+}
+
+function closeModal(id){ clearGuestInputs(); document.getElementById(id)?.classList.remove('open');}
+function switchModal(a,b){closeModal(a);openModal(b);}
+
+document.getElementById('do-login')?.addEventListener('click',async()=>{
+  const u=document.getElementById('l-user').value.trim(),p=document.getElementById('l-pass').value;
+  const err=document.getElementById('l-err');err.classList.remove('show');
+  if(!u||!p){err.textContent='Please fill in all fields.';err.classList.add('show');return;}
+  try{
+    const res=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+    const d=await res.json();
+    if(d.error){err.textContent=d.error;err.classList.add('show');}else location.reload();
+  }catch(e){err.textContent='Could not connect to the server.';err.classList.add('show');}
+});
+document.getElementById('do-register')?.addEventListener('click',async()=>{
+  const u=document.getElementById('r-user').value.trim(),e=document.getElementById('r-email').value.trim(),p=document.getElementById('r-pass').value;
+  const err=document.getElementById('r-err');err.classList.remove('show');
+  if(!u||!e||!p){err.textContent='Please fill in all fields.';err.classList.add('show');return;}
+  if(!/^[a-zA-Z0-9._%+\-]+@gmail\.com$/.test(e)){err.textContent='Email must be a valid @gmail.com address.';err.classList.add('show');return;}
+  if(p.length<8){err.textContent='Password must be at least 8 characters.';err.classList.add('show');return;}
+  if(!/[A-Z]/.test(p)){err.textContent='Password must contain an uppercase letter.';err.classList.add('show');return;}
+  if(!/\d/.test(p)){err.textContent='Password must contain a number.';err.classList.add('show');return;}
+  try{
+    const res=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,email:e,password:p})});
+    const d=await res.json();
+    if(d.error){err.textContent=d.error;err.classList.add('show');}else location.reload();
+  }catch(e){err.textContent='Could not connect to the server.';err.classList.add('show');}
+});
+
+['modal-login','modal-register'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal(id);});
+});
+
 </script>
 </body>
 </html>

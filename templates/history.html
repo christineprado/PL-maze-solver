@@ -20,9 +20,9 @@
   --shadow-lg:0 8px 40px rgba(45,36,32,0.14);
 }
 [data-theme="dark"]{
-  --bg:#0f1117;--bg2:#161b27;--bg3:#1e2535;--panel:#1e2535;--panel2:#252d40;
-  --border:#2a3550;--text:#e8eaf6;--mid:#8a9ac0;--muted:#4a5a7a;
-  --accent:#f97316;--accent-bg:#2d1a0a;
+  --bg:#0f1117;--bg2:#161b27;--bg3:#1e2535;--panel:#1e2535;--panel2:#4a5568;
+  --border:#2a3550;--text:#e8eaf6;--mid:#8a9ac0;--muted:#5a7090;
+  --accent:#f97316;--accent-bg:#462205;
   --green:#22c55e;--red:#ef4444;--blue:#60a5fa;
   --dfs:#a78bfa;--dfs-bg:#1e1530;--bfs:#38bdf8;--bfs-bg:#0a1e30;
   --yellow:#fbbf24;
@@ -99,21 +99,22 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 .overlay.open{display:grid;}
 .detail-modal{
   background:var(--panel);border-radius:20px;
-  width:100%;max-width:1100px;max-height:92vh;overflow-y:auto;
+  width:95%;max-width:1200px;max-height:92vh;overflow-y:auto;
   box-shadow:var(--shadow-lg);animation:popIn 0.25s ease;
 }
+
 @keyframes popIn{from{transform:scale(0.96);opacity:0;}to{transform:scale(1);opacity:1;}}
 .dm-head{padding:24px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .dm-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;}
 .dm-meta{font-size:13px;color:var(--muted);margin-top:4px;}
 .dm-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);}
-.dm-body{padding:24px 28px;display:flex;flex-direction:column;gap:20px;align-items:center;}
-.dm-maze{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;}
+.dm-body{padding:24px 28px;display:grid;grid-template-columns:1fr 510px;gap:28px;align-items:start;}
+.dm-maze{display:flex;flex-direction:column;align-items:center;gap:10px;}
 .dm-maze-title{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;text-align:center;}
-.dm-right{display:flex;flex-direction:column;gap:16px;width:100%;}
+.dm-right{display:flex;flex-direction:column;gap:16px;}
 .dm-section-title{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
-.dm-algo-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-.dm-algo-card{border-radius:12px;border:1.5px solid var(--border);overflow:hidden;}
+.dm-algo-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;}
+.dm-algo-card{border-radius:12px;border:1.5px solid var(--border);overflow:hidden;height:100%;}
 .dm-algo-card.dfs{border-top:3px solid var(--dfs);}
 .dm-algo-card.bfs{border-top:3px solid var(--bfs);}
 .dm-algo-head{padding:10px 14px;background:var(--bg2);font-size:12px;font-weight:700;letter-spacing:0.5px;}
@@ -361,7 +362,7 @@ function renderStats(records){
 
 function buildMiniMaze(gridData,startRow,startCol,endRow,endCol,dfsPath=[],bfsPath=[],size=6){
   const rows=gridData.length, cols=gridData[0].length;
-  const cs=Math.max(3,Math.min(size,Math.floor(140/Math.max(rows,cols))));
+  const cs=size>8?Math.max(6,size):Math.max(3,Math.min(size,Math.floor(140/Math.max(rows,cols))));
   const dfsSet=new Set(dfsPath.map(p=>p[0]+','+p[1]));
   const bfsSet=new Set(bfsPath.map(p=>p[0]+','+p[1]));
   const grid=document.createElement('div');
@@ -511,21 +512,16 @@ async function openDetail(mazeId){
     const runAlgos=['DFS','BFS'].filter(a=>results[a]);
     const isBoth=runAlgos.length===2;
 
-    // Build maze at base cell size filling modal width
     const maxDim=Math.max(m.grid_rows,m.grid_cols);
     const modalW=document.getElementById('detail-modal').offsetWidth||900;
-    let baseCell=Math.max(18,Math.floor((modalW-80)/maxDim));
-    const mazeGrid=document.getElementById('dm-maze-grid');
-
-    function rebuildMaze(zoom){
-      const cs=Math.round(baseCell*(zoom/100));
-      mazeGrid.innerHTML='';
-      mazeGrid.appendChild(buildMiniMaze(m.grid_data,m.start_row,m.start_col,m.end_row,m.end_col,dPath,bPath,cs));
-    }
-    rebuildMaze(100);
+    const availH=Math.floor(window.innerHeight*0.65);
+    const availW=Math.floor((modalW-440)*0.60);
+    const bigCell=Math.max(12,Math.min(Math.floor(availW/maxDim),Math.floor(availH/maxDim)));
+    const bigMaze=buildMiniMaze(m.grid_data,m.start_row,m.start_col,m.end_row,m.end_col,dPath,bPath,bigCell);
+    document.getElementById('dm-maze-grid').appendChild(bigMaze);
 
     const row=document.getElementById('dm-algo-row');
-    if(!isBoth) row.style.gridTemplateColumns='1fr';
+    if(!isBoth){row.style.gridTemplateColumns='1fr';}else{row.style.gridTemplateColumns='1fr 1fr';}
 
     runAlgos.forEach(algo=>{
 
